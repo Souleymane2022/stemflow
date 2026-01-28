@@ -14,6 +14,38 @@ STEM FLOW is a mobile-first educational application that makes learning Science,
 ### Slogan
 "Scroll. Learn. Level Up."
 
+## Brand Identity
+
+### Core Values
+- **Apprentissage & Progression**: Growth, levels, continuous evolution
+- **Accessibilité & Inclusion**: Simplicity, clarity, diversity
+- **Innovation & Technologie**: Modernity, intelligence, future
+- **Communauté & Collaboration**: Links, networks, sharing
+- **Fierté et Potentiel Africain**: Energy, youth, creativity
+
+### Visual Keywords
+Flow · Progression · Connexion · Intelligence · Énergie · Futur
+
+## Color Palette
+
+### Primary Colors
+| Color | Hex | HSL | Purpose |
+|-------|-----|-----|---------|
+| Deep Tech Blue | #0B3C5D | 200 78% 20% | Trust, Knowledge, Technology, Credibility |
+| Green Energy | #00C896 | 164 100% 39% | Progression, Success, Innovation, Youth |
+
+### Secondary Colors
+| Color | Hex | HSL | Purpose |
+|-------|-----|-----|---------|
+| Warm Yellow/Orange | #F5B700 | 46 100% 48% | African Energy, Motivation, Gamification |
+| Light Gray | #F4F6F8 | 210 25% 97% | Readability, Comfort |
+| Soft Black | #1E1E1E | 0 0% 12% | Text, Contrast |
+
+### Color Usage Rules
+- **Blue** = Structure & Credibility
+- **Green** = Progression & Impact
+- **Yellow** = Motivation & Engagement
+
 ## Project Structure
 
 ```
@@ -39,7 +71,7 @@ client/
 │   │   ├── RoomDetail.tsx            # Room detail with tabs
 │   │   └── Rooms.tsx                 # Room listing page
 │   ├── App.tsx                       # Main app with routing
-│   └── index.css                     # Theme colors (violet-fuchsia)
+│   └── index.css                     # Theme colors (African Innovation)
 ├── index.html                        # HTML entry with meta tags
 server/
 ├── routes.ts                         # API endpoints with Zod validation
@@ -97,12 +129,15 @@ shared/
 | PATCH | `/api/users/:id` | Update user profile |
 | POST | `/api/engagement/video` | Track video engagement |
 
-## Theme Colors
+## Gradient Utilities
 
-The app uses a violet-fuchsia gradient theme:
-- Primary: HSL(280, 80%, 55%) - Violet
-- Accent: HSL(320, 75%, 55%) - Fuchsia/Pink
-- Supporting gradients for category colors
+Custom CSS gradient classes for the African Innovation theme:
+
+- `.gradient-stem` - Blue to Green (Tech → Progression)
+- `.gradient-energy` - Green to Yellow (Progression → Motivation)
+- `.gradient-innovation` - Blue to Yellow (Tech → Énergie)
+- `.gradient-african` - Full brand: Blue → Green → Yellow
+- `.gradient-stem-text` - Text gradient effect
 
 ## Technologies
 

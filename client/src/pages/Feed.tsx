@@ -59,11 +59,11 @@ export default function Feed() {
         <div className="flex items-center justify-between p-4">
           <StemFlowLogo size="sm" showText={false} />
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-orange-500">
+            <div className="flex items-center gap-1 text-[#F5B700]">
               <Flame className="h-4 w-4" />
               <span className="text-sm font-bold">{streak}</span>
             </div>
-            <div className="flex items-center gap-1 text-primary">
+            <div className="flex items-center gap-1 text-accent">
               <Zap className="h-4 w-4" />
               <span className="text-sm font-bold">{xp}</span>
             </div>

@@ -38,16 +38,16 @@ const contentTypeIcons = {
 };
 
 const categoryColors = {
-  science: "from-blue-500 to-cyan-400",
-  technology: "from-purple-500 to-pink-400",
-  engineering: "from-orange-500 to-yellow-400",
-  mathematics: "from-green-500 to-emerald-400",
+  science: "from-[#0B3C5D] to-[#00C896]",
+  technology: "from-[#00C896] to-[#0B3C5D]",
+  engineering: "from-[#F5B700] to-[#00C896]",
+  mathematics: "from-[#0B3C5D] to-[#F5B700]",
 };
 
 const difficultyLabels = {
-  debutant: { label: "Débutant", color: "bg-green-500/20 text-green-600 dark:text-green-400" },
-  intermediaire: { label: "Intermédiaire", color: "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" },
-  avance: { label: "Avancé", color: "bg-red-500/20 text-red-600 dark:text-red-400" },
+  debutant: { label: "Débutant", color: "bg-accent/20 text-accent" },
+  intermediaire: { label: "Intermédiaire", color: "bg-[#F5B700]/20 text-[#F5B700]" },
+  avance: { label: "Avancé", color: "bg-primary/20 text-primary" },
 };
 
 export function ContentCard({
@@ -146,7 +146,7 @@ export function ContentCard({
           )}
 
           {content.contentType === "quiz" && (
-            <div className="p-6 bg-gradient-to-br from-purple-500 to-pink-500 min-h-[200px] flex flex-col items-center justify-center gap-4">
+            <div className="p-6 bg-gradient-to-br from-[#F5B700] to-[#00C896] min-h-[200px] flex flex-col items-center justify-center gap-4">
               <HelpCircle className="h-12 w-12 text-white" />
               <p className="text-white text-lg font-semibold text-center">
                 Quiz disponible
@@ -158,7 +158,7 @@ export function ContentCard({
           )}
 
           {content.contentType === "infographic" && (
-            <div className="p-6 bg-gradient-to-br from-cyan-500 to-blue-500 min-h-[200px] flex flex-col items-center justify-center gap-4">
+            <div className="p-6 bg-gradient-to-br from-[#0B3C5D] to-[#00C896] min-h-[200px] flex flex-col items-center justify-center gap-4">
               <BarChart2 className="h-12 w-12 text-white" />
               <p className="text-white text-lg font-semibold text-center">
                 Infographie

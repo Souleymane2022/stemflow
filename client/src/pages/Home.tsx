@@ -22,25 +22,25 @@ export default function Home() {
       icon: Sparkles,
       title: "Contenu personnalisé",
       description: "Un feed adapté à tes intérêts et ton niveau",
-      color: "from-purple-500 to-pink-500",
+      gradient: "gradient-stem",
     },
     {
       icon: Users,
       title: "Communautés STEM",
       description: "Rejoins des salons et apprends avec d'autres",
-      color: "from-blue-500 to-cyan-500",
+      gradient: "bg-primary",
     },
     {
       icon: Target,
       title: "Missions quotidiennes",
       description: "Complète des défis et gagne des XP",
-      color: "from-orange-500 to-yellow-500",
+      gradient: "gradient-energy",
     },
     {
       icon: Zap,
       title: "Progression gamifiée",
       description: "Monte de niveau et deviens un expert",
-      color: "from-green-500 to-emerald-500",
+      gradient: "bg-accent",
     },
   ];
 
@@ -99,7 +99,7 @@ export default function Home() {
                 transition={{ delay: 0.2 + index * 0.1 }}
                 className="flex items-center gap-4 p-4 rounded-xl bg-card border"
               >
-                <div className={`p-3 rounded-lg bg-gradient-to-br ${feature.color}`}>
+                <div className={`p-3 rounded-lg ${feature.gradient}`}>
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -128,7 +128,7 @@ export default function Home() {
               <div className="text-xs text-muted-foreground">Salons</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-500">10K+</div>
+              <div className="text-2xl font-bold text-[#F5B700]">10K+</div>
               <div className="text-xs text-muted-foreground">Apprenants</div>
             </div>
           </div>

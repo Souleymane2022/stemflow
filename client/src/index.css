@@ -2,79 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - STEM FLOW Violet-Fuchsia Theme */
+/* LIGHT MODE - STEM FLOW African Innovation Theme
+   Palette:
+   - Primary Blue (Confiance, Technologie): #0B3C5D
+   - Primary Green (Progression, Innovation): #00C896
+   - Secondary Yellow (Énergie, Gamification): #F5B700
+   - Light Gray (Confort visuel): #F4F6F8
+   - Soft Black (Texte): #1E1E1E
+*/
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
 
-  /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: -8; /* In terms of percentages */
+  --opaque-button-border-intensity: -8;
 
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 270 20% 98%;
-  --foreground: 270 15% 10%;
-  --border: 270 15% 90%;
+  /* Deep tech blue tinted backgrounds */
+  --background: 210 25% 97%;
+  --foreground: 0 0% 12%;
+  --border: 200 20% 88%;
 
   --card: 0 0% 100%;
-  --card-foreground: 270 15% 10%;
-  --card-border: 270 15% 92%;
+  --card-foreground: 0 0% 12%;
+  --card-border: 200 20% 90%;
 
-  --sidebar: 270 25% 97%;
-  --sidebar-foreground: 270 15% 15%;
-  --sidebar-border: 270 15% 90%;
-  --sidebar-primary: 280 80% 55%;
+  --sidebar: 200 30% 96%;
+  --sidebar-foreground: 200 40% 15%;
+  --sidebar-border: 200 20% 88%;
+  --sidebar-primary: 200 78% 20%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 280 60% 95%;
-  --sidebar-accent-foreground: 280 80% 40%;
-  --sidebar-ring: 280 80% 55%;
+  --sidebar-accent: 164 60% 94%;
+  --sidebar-accent-foreground: 164 80% 28%;
+  --sidebar-ring: 164 100% 39%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 270 15% 10%;
-  --popover-border: 270 15% 90%;
+  --popover-foreground: 0 0% 12%;
+  --popover-border: 200 20% 88%;
 
-  --primary: 280 80% 55%;
+  /* Primary: Deep tech blue - Confiance, Savoir, Technologie */
+  --primary: 200 78% 20%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 270 20% 94%;
-  --secondary-foreground: 270 15% 25%;
+  --secondary: 210 20% 94%;
+  --secondary-foreground: 200 40% 20%;
 
-  --muted: 270 15% 95%;
-  --muted-foreground: 270 10% 45%;
+  --muted: 210 15% 94%;
+  --muted-foreground: 200 15% 40%;
 
-  --accent: 320 75% 55%;
+  /* Accent: Green energy - Progression, Réussite, Innovation */
+  --accent: 164 100% 39%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 270 15% 88%;
-  --ring: 280 80% 55%;
+  --input: 200 20% 88%;
+  --ring: 164 100% 39%;
   
-  --chart-1: 280 80% 55%;
-  --chart-2: 320 75% 55%;
-  --chart-3: 200 85% 55%;
-  --chart-4: 145 65% 45%;
-  --chart-5: 45 90% 55%;
+  /* Charts use all brand colors */
+  --chart-1: 200 78% 20%;
+  --chart-2: 164 100% 39%;
+  --chart-3: 46 100% 48%;
+  --chart-4: 200 60% 45%;
+  --chart-5: 164 70% 50%;
 
   --font-sans: 'Inter', 'DM Sans', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
   --radius: .5rem;
-  --shadow-2xs: 0px 1px 2px 0px rgba(139, 92, 246, 0.05);
-  --shadow-xs: 0px 1px 3px 0px rgba(139, 92, 246, 0.08);
-  --shadow-sm: 0px 2px 4px 0px rgba(139, 92, 246, 0.08), 0px 1px 2px -1px rgba(139, 92, 246, 0.05);
-  --shadow: 0px 4px 6px -1px rgba(139, 92, 246, 0.1), 0px 2px 4px -2px rgba(139, 92, 246, 0.08);
-  --shadow-md: 0px 6px 10px -2px rgba(139, 92, 246, 0.1), 0px 3px 6px -3px rgba(139, 92, 246, 0.08);
-  --shadow-lg: 0px 10px 15px -3px rgba(139, 92, 246, 0.1), 0px 4px 6px -4px rgba(139, 92, 246, 0.08);
-  --shadow-xl: 0px 20px 25px -5px rgba(139, 92, 246, 0.1), 0px 8px 10px -6px rgba(139, 92, 246, 0.08);
-  --shadow-2xl: 0px 25px 50px -12px rgba(139, 92, 246, 0.25);
+  --shadow-2xs: 0px 1px 2px 0px rgba(11, 60, 93, 0.05);
+  --shadow-xs: 0px 1px 3px 0px rgba(11, 60, 93, 0.08);
+  --shadow-sm: 0px 2px 4px 0px rgba(11, 60, 93, 0.08), 0px 1px 2px -1px rgba(11, 60, 93, 0.05);
+  --shadow: 0px 4px 6px -1px rgba(11, 60, 93, 0.1), 0px 2px 4px -2px rgba(11, 60, 93, 0.08);
+  --shadow-md: 0px 6px 10px -2px rgba(11, 60, 93, 0.1), 0px 3px 6px -3px rgba(11, 60, 93, 0.08);
+  --shadow-lg: 0px 10px 15px -3px rgba(11, 60, 93, 0.1), 0px 4px 6px -4px rgba(11, 60, 93, 0.08);
+  --shadow-xl: 0px 20px 25px -5px rgba(11, 60, 93, 0.1), 0px 8px 10px -6px rgba(11, 60, 93, 0.08);
+  --shadow-2xl: 0px 25px 50px -12px rgba(11, 60, 93, 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  /* Automatically computed borders */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(var(--sidebar-accent));
@@ -91,7 +99,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* DARK MODE - STEM FLOW Violet-Fuchsia Theme */
+/* DARK MODE - STEM FLOW African Innovation Theme */
 .dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
@@ -101,50 +109,52 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 270 20% 6%;
-  --foreground: 270 10% 95%;
-  --border: 270 15% 18%;
+  --background: 200 25% 7%;
+  --foreground: 210 15% 95%;
+  --border: 200 20% 18%;
 
-  --card: 270 18% 10%;
-  --card-foreground: 270 10% 95%;
-  --card-border: 270 15% 18%;
+  --card: 200 20% 10%;
+  --card-foreground: 210 15% 95%;
+  --card-border: 200 18% 18%;
 
-  --sidebar: 270 20% 8%;
-  --sidebar-foreground: 270 10% 90%;
-  --sidebar-border: 270 15% 15%;
-  --sidebar-primary: 280 80% 60%;
+  --sidebar: 200 22% 9%;
+  --sidebar-foreground: 200 15% 90%;
+  --sidebar-border: 200 18% 15%;
+  --sidebar-primary: 200 70% 35%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 280 40% 18%;
-  --sidebar-accent-foreground: 280 70% 80%;
-  --sidebar-ring: 280 80% 60%;
+  --sidebar-accent: 164 50% 18%;
+  --sidebar-accent-foreground: 164 80% 70%;
+  --sidebar-ring: 164 100% 45%;
 
-  --popover: 270 18% 10%;
-  --popover-foreground: 270 10% 95%;
-  --popover-border: 270 15% 18%;
+  --popover: 200 20% 10%;
+  --popover-foreground: 210 15% 95%;
+  --popover-border: 200 18% 18%;
 
-  --primary: 280 80% 60%;
+  /* Primary: Deep tech blue - brighter in dark mode */
+  --primary: 200 70% 40%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 270 15% 18%;
-  --secondary-foreground: 270 10% 85%;
+  --secondary: 200 18% 18%;
+  --secondary-foreground: 200 15% 85%;
 
-  --muted: 270 15% 15%;
-  --muted-foreground: 270 10% 55%;
+  --muted: 200 15% 15%;
+  --muted-foreground: 200 12% 55%;
 
-  --accent: 320 75% 60%;
+  /* Accent: Green energy - brighter in dark mode */
+  --accent: 164 100% 45%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 270 15% 22%;
-  --ring: 280 80% 60%;
+  --input: 200 18% 22%;
+  --ring: 164 100% 45%;
   
-  --chart-1: 280 80% 60%;
-  --chart-2: 320 75% 60%;
-  --chart-3: 200 85% 60%;
-  --chart-4: 145 65% 50%;
-  --chart-5: 45 90% 60%;
+  --chart-1: 200 70% 45%;
+  --chart-2: 164 100% 50%;
+  --chart-3: 46 100% 55%;
+  --chart-4: 200 55% 55%;
+  --chart-5: 164 65% 55%;
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
   --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.4);
@@ -166,33 +176,47 @@
   }
 }
 
-/* Custom gradient utilities for STEM FLOW */
+/* Custom gradient utilities for STEM FLOW - African Innovation */
 @layer utilities {
+  /* Main gradient: Blue to Green (Tech → Progression) */
   .gradient-stem {
-    background: linear-gradient(135deg, hsl(280 80% 55%) 0%, hsl(320 75% 55%) 100%);
+    background: linear-gradient(135deg, hsl(200 78% 20%) 0%, hsl(164 100% 39%) 100%);
   }
   
   .gradient-stem-dark {
-    background: linear-gradient(135deg, hsl(280 80% 60%) 0%, hsl(320 75% 60%) 100%);
+    background: linear-gradient(135deg, hsl(200 70% 35%) 0%, hsl(164 100% 45%) 100%);
   }
   
   .gradient-stem-text {
-    background: linear-gradient(135deg, hsl(280 80% 55%) 0%, hsl(320 75% 55%) 100%);
+    background: linear-gradient(135deg, hsl(200 78% 25%) 0%, hsl(164 100% 39%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .gradient-stem-border {
-    border-image: linear-gradient(135deg, hsl(280 80% 55%) 0%, hsl(320 75% 55%) 100%) 1;
+    border-image: linear-gradient(135deg, hsl(200 78% 20%) 0%, hsl(164 100% 39%) 100%) 1;
   }
 
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  /* Energy gradient: Green to Yellow (Progression → Motivation) */
+  .gradient-energy {
+    background: linear-gradient(135deg, hsl(164 100% 39%) 0%, hsl(46 100% 48%) 100%);
+  }
+
+  /* Innovation gradient: Blue to Yellow (Tech → Énergie) */
+  .gradient-innovation {
+    background: linear-gradient(135deg, hsl(200 78% 20%) 0%, hsl(46 100% 48%) 100%);
+  }
+
+  /* Full brand gradient: Blue → Green → Yellow */
+  .gradient-african {
+    background: linear-gradient(135deg, hsl(200 78% 20%) 0%, hsl(164 100% 39%) 50%, hsl(46 100% 48%) 100%);
+  }
+
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable div */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
@@ -258,13 +282,11 @@
     inset: -1px;
   }
 
-  /* Smooth scroll for feed */
   .scroll-smooth {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
