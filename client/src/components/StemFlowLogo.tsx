@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import stemFlowLogo from "@assets/a7f9fef0-ccda-4856-80a4-17e64300d515_1769637656263.png";
 
 interface StemFlowLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -8,29 +8,27 @@ interface StemFlowLogoProps {
 
 export function StemFlowLogo({ size = "md", showText = true, className = "" }: StemFlowLogoProps) {
   const sizeClasses = {
-    sm: "h-6 w-6",
-    md: "h-8 w-8",
-    lg: "h-12 w-12",
-    xl: "h-16 w-16",
+    sm: "h-8",
+    md: "h-10",
+    lg: "h-14",
+    xl: "h-20",
   };
 
-  const textSizeClasses = {
-    sm: "text-lg",
-    md: "text-xl",
-    lg: "text-3xl",
-    xl: "text-4xl",
+  const iconOnlySizes = {
+    sm: "h-6",
+    md: "h-8",
+    lg: "h-12",
+    xl: "h-16",
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <div className="gradient-stem rounded-lg p-1.5 flex items-center justify-center">
-        <Zap className={`${sizeClasses[size]} text-white fill-white`} />
-      </div>
-      {showText && (
-        <span className={`font-bold ${textSizeClasses[size]} gradient-stem-text`}>
-          STEM FLOW
-        </span>
-      )}
+    <div className={`flex items-center ${className}`}>
+      <img 
+        src={stemFlowLogo} 
+        alt="STEMflow" 
+        className={`${showText ? sizeClasses[size] : iconOnlySizes[size]} w-auto object-contain`}
+        data-testid="logo-stemflow"
+      />
     </div>
   );
 }
