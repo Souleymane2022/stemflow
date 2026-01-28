@@ -1,0 +1,184 @@
+Créer une application où :
+
+✨ Le feed ATTIRE(découverte
+🏰 Les salons ENGAGENT(communauté
+🤖 L'IA PERSONNALISÉE(expérience
+🎮 La gamification FIDÉLISE(motivation
+🧠 L'apprentissage devient NATUREL, SOCIAL et ADDICTIF
+📋
+Nouveau nom et slogan
+
+Nom:
+Slogan:
+Logo:
+Philosophie:
+Fichiers créés/modifiés :
+
+components/ui/StemFlowLogo.jsx(créé)
+pages/Home.jsx(importer
+🎓
+Ordre STRICT des étapes:
+
+Langue(fr/en)
+Niveau d'éducation - OBLIGATOIRE
+Collège,
+Centres d'intérêt STEM - Minimum 1 requis
+Science,
+Niveau de départ(Curieux,
+Enrichir le profil utilisateur:
+
+{
+  "preferred_language": "fr" | "en",
+  "education_level": "college" | "lycee" | "universite" | "autodidacte",
+  "interests": ["science", "technology", ...],
+  "level": "curieux" | "explorateur" | "analyste" | "challenger" | "mentor"
+}
+Fichiers :
+
+pages/Onboarding.jsx(refonte
+entities/UserProfile.json(champions)
+📱
+Nouvelle entité Content-
+
+{
+  "content_type": "video" | "text_post" | "image_post" | "quiz" | "infographic",
+  "video_url": "...",
+  "text_content": "...",
+  "image_url": "...",
+  "room_id": "ID du salon d'origine",
+  "category": "science" | "technology" | "engineering" | "mathematics",
+  "difficulty": "debutant" | "intermediaire" | "avance",
+  "xp_reward": 25
+}
+Carte de contenu du composant :
+
+Affichage adaptatif selon
+Badge salon d'origine avec lien direct
+Bouton "Rejoindre le
+Actions : J’aime, Commenter, Enregistrer, Partager
+Fichiers :
+
+entities/Content.json(créé)
+components/feed/ContentCard.jsx(créé)
+🤖 PHASE 4 :
+Profil IA dynamiquestockéengagement_stats:
+
+{
+  "science": {
+    "watch_time": 1200,
+    "completion_rate": 85,
+    "interaction_count": 15
+  }
+}
+Algorithme de scoring personnalisé ( FeedAlgorithm.jsx) :
+
+Intérêt utilisateur(25%)
+Difficile progressif(30%)
+Modèles d'engagement(25%)
+Diversité anti-bulle(15%)
+Série bonus(5%)
+Adaptation temps réel :
+
+Difficulté d'ajustement selon
+Si performance > 75%, proposer niveau
+Calculpreferred_difficultyautomatique
+Diversité
+🏰
+Types de salons :
+
+Publique,
+Rôles dans les salons :
+
+Apprenti:
+Challenger:
+Mentor:
+Modérateur:
+Fonctionnalités par salon:
+
+Publications variées (vidéos, textes,
+Discussions textuelles ( RoomMessage)
+Défis spécifiques ( RoomChallenge)
+Classement interne (XP par
+Classement
+Flux de connexion ↔ Salons :
+
+ChaqueContentpeutroom_id
+Salon Badge
+Navigation directe versRoomDetail
+Aliments influences par
+🎮 PHASE 6 : GAMIFICATION
+Nouvelle entité Mission:
+
+{
+  "mission_type": "watch_videos" | "complete_quiz" | "join_salon" | 
+                  "comment" | "share_content" | "win_battle" | 
+                  "create_content" | "streak",
+  "title": "Explorateur quotidien",
+  "description": "Regarde 3 vidéos en science",
+  "target_value": 3,
+  "current_progress": 0,
+  "xp_reward": 100,
+  "frequency": "daily" | "weekly" | "one_time",
+  "category": "science"
+}
+Système de missions personnalisées :
+
+Génération
+Adaptées au profil (intérêts, niveau,
+Évolutives
+Exemples de missions :
+
+"Regardez 3 vidéos en
+"Commentaire 2 contenus pour aider"
+"Rejoigne
+"Gagne un défi dans ton
+Fichiers :
+
+entities/Mission.json(créé)
+components/missions/MissionSystem.jsx(créé)
+components/missions/MissionCard.jsx(créé)
+📊 PHASE 7 : MÉTRIQUES
+Engagement vidéo(suivi
+
+{
+  "watch_time_seconds": 45,
+  "completion_percentage": 80,
+  "liked": true,
+  "commented": true,
+  "saved": false,
+  "shared": false,
+  "rewatch_count": 2
+}
+Métriques suivies :
+
+Temps
+Taux
+Participation
+Rétention
+Utilisation :
+
+L'Aide
+Adaptateur
+Générer
+💬
+"STEM FLOW n'est pas une plateforme de cours, c'est un écosystème vivant d'apprentissage."
+
+🔧 PROMPT DE REPRODUCTION
+Transforme cette application en STEM FLOW, un TikTok éducatif :
+
+1. REBRANDING : STEM FLOW, logo ⚡ violet-fuchsia, slogan "Scroll. Learn. Level Up."
+
+2. ONBOARDING : Langue → Éducation (collège/lycée/univ/autodidacte) → Intérêts STEM → Niveau départ
+
+3. FEED MULTI-FORMAT : Entité Content (video/text_post/image_post/quiz/infographic) avec ContentCard adaptatif, badges salon d'origine, bouton "Rejoindre salon"
+
+4. PERSONNALISATION IA : engagement_stats par catégorie, algorithme scoring (intérêts 25%, difficulté 30%, engagement 25%, diversité 15%, streak 5%), preferred_difficulty auto-ajusté
+
+5. SALONS RENFORCÉS : Rôles (apprenant/challenger/mentor/modérateur), publications variées, défis internes, leaderboard, connexion bidirectionnelle avec feed
+
+6. MISSIONS DYNAMIQUES : Entité Mission (daily/weekly/one_time), génération auto personnalisée selon profil/intérêts/salons, types (watch/quiz/join/comment/share/battle/create/streak)
+
+7. MÉTRIQUES : VideoEngagement avec watch_time/completion/interactions, utiliser pour améliorer (pas pénaliser)
+
+Design : Mobile-first, gradients violet-fuchsia, animations smooth, scroll vertical fluide
+Philo : Feed attire → Salons engagent → IA personnalise → Gamification fidélise
