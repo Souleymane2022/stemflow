@@ -18,6 +18,7 @@ import Home from "@/pages/Home";
 import CreateContent from "@/pages/CreateContent";
 import QuizPlayer from "@/pages/QuizPlayer";
 import Leaderboard from "@/pages/Leaderboard";
+import AIAssistant from "@/pages/AIAssistant";
 
 function Router() {
   const { onboardingCompleted } = useUserState();
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/create/:type" component={CreateContent} />
       <Route path="/quiz/:id" component={QuizPlayer} />
       <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/assistant" component={AIAssistant} />
       <Route component={NotFound} />
     </Switch>
   );

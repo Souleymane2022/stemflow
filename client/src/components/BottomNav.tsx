@@ -5,7 +5,7 @@ import {
   Home,
   Users,
   Trophy,
-  Target,
+  Bot,
   User,
 } from "lucide-react";
 
@@ -13,7 +13,7 @@ const navItems = [
   { path: "/feed", label: "Feed", icon: Home },
   { path: "/rooms", label: "Salons", icon: Users },
   { path: "/leaderboard", label: "Rang", icon: Trophy },
-  { path: "/missions", label: "Missions", icon: Target },
+  { path: "/assistant", label: "IA", icon: Bot },
   { path: "/profile", label: "Profil", icon: User },
 ];
 

@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useUserState } from "@/lib/userState";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,6 +26,8 @@ import {
   Wrench,
   Calculator,
   Send,
+  Brain,
+  Sparkles,
 } from "lucide-react";
 
 const contentTypeConfig = {
@@ -78,6 +82,41 @@ export default function CreateContent() {
   const [questions, setQuestions] = useState<QuizQuestionForm[]>([
     { question: "", options: ["", ""], correctOptionIndex: 0, explanation: "" },
   ]);
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    detectedSubject: string;
+    detectedDifficulty: string;
+    suggestedTags: string[];
+    summary: string;
+    learnScore: number;
+    pedagogicalFeedback: string;
+    qualityIndicators: { clarity: number; accuracy: number; engagement: number; depth: number };
+  } | null>(null);
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const contentText = contentType === "quiz"
+        ? questions.map((q) => q.question).join("\n")
+        : textContent || description || title;
+      const res = await apiRequest("POST", "/api/ai/analyze-content", {
+        title,
+        content: contentText,
+        contentType,
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setAiAnalysis(data);
+      if (data.detectedSubject && !category) setCategory(data.detectedSubject);
+      if (data.detectedDifficulty && !difficulty) setDifficulty(data.detectedDifficulty);
+      if (data.suggestedTags?.length > 0 && tags.length === 0) {
+        setTags(data.suggestedTags);
+      }
+      toast({ title: "Analyse IA terminée", description: `LearnScore: ${data.learnScore}/100` });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "L'analyse IA n'est pas disponible pour le moment.", variant: "destructive" });
+    },
+  });
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -386,6 +425,59 @@ export default function CreateContent() {
             </Button>
           </div>
         )}
+
+        <Card className="p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-semibold flex items-center gap-2 text-sm">
+              <Brain className="h-4 w-4 text-accent" />
+              Analyse IA
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => analyzeMutation.mutate()}
+              disabled={!title.trim() || analyzeMutation.isPending}
+              data-testid="button-ai-analyze"
+            >
+              <Sparkles className={`h-3.5 w-3.5 mr-1 ${analyzeMutation.isPending ? "animate-spin" : ""}`} />
+              {analyzeMutation.isPending ? "Analyse..." : "Analyser"}
+            </Button>
+          </div>
+
+          {analyzeMutation.isPending && (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          )}
+
+          {aiAnalysis && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3 p-2 rounded-lg bg-accent/10">
+                <span className="text-sm font-medium">LearnScore</span>
+                <span className="text-sm font-bold text-accent">{aiAnalysis.learnScore}/100</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(aiAnalysis.qualityIndicators).map(([key, value]) => (
+                  <div key={key} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        {key === "clarity" ? "Clarté" : key === "accuracy" ? "Précision" : key === "engagement" ? "Engagement" : "Profondeur"}
+                      </span>
+                      <span className="font-medium">{value}%</span>
+                    </div>
+                    <Progress value={value} className="h-1.5" />
+                  </div>
+                ))}
+              </div>
+              {aiAnalysis.pedagogicalFeedback && (
+                <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-lg">
+                  {aiAnalysis.pedagogicalFeedback}
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
 
         <Card className="p-4 space-y-4">
           <div>

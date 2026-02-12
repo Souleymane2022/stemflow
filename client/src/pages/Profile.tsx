@@ -1,14 +1,17 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { StemFlowLogo } from "@/components/StemFlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Zap,
   Flame,
@@ -26,6 +29,10 @@ import {
   Trophy,
   Star,
   TrendingUp,
+  Brain,
+  Target,
+  GraduationCap,
+  RefreshCw,
 } from "lucide-react";
 
 const levelConfig = {
@@ -50,9 +57,19 @@ const educationLabels = {
   autodidacte: "Autodidacte",
 };
 
+interface SmartProfileData {
+  detectedCompetencies: string[];
+  strongAreas: string[];
+  areasToImprove: string[];
+  suggestedLevel: string;
+  learningStyle: string;
+  progressionSummary: string;
+}
+
 export default function Profile() {
   const [, setLocation] = useLocation();
-  const { profile, xp, streak, reset } = useUserState();
+  const { profile, xp, streak, userId, reset } = useUserState();
+  const [smartProfile, setSmartProfile] = useState<SmartProfileData | null>(null);
 
   const currentLevel = profile?.level || "curieux";
   const levelInfo = levelConfig[currentLevel as keyof typeof levelConfig];
@@ -65,6 +82,18 @@ export default function Profile() {
 
   const xpProgress = nextLevelInfo ? (xp / nextLevelInfo.xpNeeded) * 100 : 100;
 
+  const smartProfileMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/ai/smart-profile", {
+        userId: userId || "current-user",
+      });
+      return res.json();
+    },
+    onSuccess: (data: SmartProfileData) => {
+      setSmartProfile(data);
+    },
+  });
+
   const handleLogout = () => {
     reset();
     setLocation("/");
@@ -72,9 +101,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between gap-3 p-4">
           <h1 className="text-xl font-bold">Mon Profil</h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -86,7 +114,6 @@ export default function Profile() {
       </header>
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
-        {/* Profile Card */}
         <Card className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-20 w-20 border-4 border-primary/20">
@@ -112,9 +139,8 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Level Progress */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${levelInfo.color}`}>
                   <LevelIcon className="h-5 w-5 text-white" />
@@ -139,7 +165,6 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Interests */}
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Star className="h-4 w-4 text-primary" />
@@ -148,6 +173,7 @@ export default function Profile() {
           <div className="flex flex-wrap gap-2">
             {profile?.interests?.map((interest) => {
               const info = interestIcons[interest as keyof typeof interestIcons];
+              if (!info) return null;
               const Icon = info.icon;
               return (
                 <Badge
@@ -165,7 +191,6 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Stats */}
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
@@ -181,7 +206,7 @@ export default function Profile() {
               <div className="text-xs text-muted-foreground">Série de jours</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-500">
+              <div className="text-2xl font-bold text-accent">
                 {profile?.interests?.length || 0}
               </div>
               <div className="text-xs text-muted-foreground">Intérêts</div>
@@ -189,7 +214,95 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Achievements */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Brain className="h-4 w-4 text-accent" />
+              Profil Intelligent IA
+            </h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => smartProfileMutation.mutate()}
+              disabled={smartProfileMutation.isPending}
+              data-testid="button-analyze-profile"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${smartProfileMutation.isPending ? "animate-spin" : ""}`} />
+              {smartProfileMutation.isPending ? "Analyse..." : "Analyser"}
+            </Button>
+          </div>
+
+          {smartProfileMutation.isPending && (
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          )}
+
+          {smartProfile ? (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                <p className="text-sm text-accent font-medium mb-1">
+                  <GraduationCap className="h-3.5 w-3.5 inline mr-1" />
+                  Style d'apprentissage
+                </p>
+                <p className="text-sm text-muted-foreground">{smartProfile.learningStyle}</p>
+              </div>
+
+              <p className="text-sm text-muted-foreground" data-testid="text-progression-summary">
+                {smartProfile.progressionSummary}
+              </p>
+
+              {smartProfile.detectedCompetencies.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Compétences détectées</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {smartProfile.detectedCompetencies.map((comp) => (
+                      <Badge key={comp} variant="secondary" className="text-xs">
+                        <Sparkles className="h-3 w-3 mr-1 text-accent" />
+                        {comp}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {smartProfile.strongAreas.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Points forts</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {smartProfile.strongAreas.map((area) => (
+                      <Badge key={area} variant="secondary" className="text-xs bg-accent/10 text-accent">
+                        <Target className="h-3 w-3 mr-1" />
+                        {area}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {smartProfile.areasToImprove.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">À améliorer</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {smartProfile.areasToImprove.map((area) => (
+                      <Badge key={area} variant="secondary" className="text-xs">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        {area}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : !smartProfileMutation.isPending ? (
+            <p className="text-sm text-muted-foreground text-center py-3">
+              Clique sur "Analyser" pour obtenir une analyse IA de ton profil.
+            </p>
+          ) : null}
+        </Card>
+
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
@@ -217,7 +330,27 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Logout */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setLocation("/missions")}
+            data-testid="button-missions"
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Missions
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setLocation("/leaderboard")}
+            data-testid="button-leaderboard"
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Classement
+          </Button>
+        </div>
+
         <Button
           variant="outline"
           className="w-full"

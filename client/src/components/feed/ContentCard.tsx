@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import {
   Heart,
   MessageCircle,
@@ -18,6 +20,9 @@ import {
   Users,
   Zap,
   ChevronRight,
+  Brain,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { Content } from "@shared/schema";
 
@@ -28,9 +33,10 @@ interface ContentCardProps {
   onShare?: () => void;
   onSave?: () => void;
   onJoinRoom?: () => void;
+  showLearnScore?: boolean;
 }
 
-const contentTypeIcons = {
+const contentTypeIcons: Record<string, typeof Play> = {
   video: Play,
   text_post: FileText,
   image_post: ImageIcon,
@@ -38,14 +44,14 @@ const contentTypeIcons = {
   infographic: BarChart2,
 };
 
-const categoryColors = {
+const categoryColors: Record<string, string> = {
   science: "from-[#0B3C5D] to-[#00C896]",
   technology: "from-[#00C896] to-[#0B3C5D]",
   engineering: "from-[#F5B700] to-[#00C896]",
   mathematics: "from-[#0B3C5D] to-[#F5B700]",
 };
 
-const difficultyLabels = {
+const difficultyLabels: Record<string, { label: string; color: string }> = {
   debutant: { label: "Débutant", color: "bg-accent/20 text-accent" },
   intermediaire: { label: "Intermédiaire", color: "bg-[#F5B700]/20 text-[#F5B700]" },
   avance: { label: "Avancé", color: "bg-primary/20 text-primary" },
@@ -58,15 +64,26 @@ export function ContentCard({
   onShare,
   onSave,
   onJoinRoom,
+  showLearnScore = false,
 }: ContentCardProps) {
   const [, setLocation] = useLocation();
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(content.likes ?? 0);
+  const [showDetails, setShowDetails] = useState(false);
 
-  const ContentIcon = contentTypeIcons[content.contentType];
-  const gradientColor = categoryColors[content.category];
-  const difficulty = difficultyLabels[content.difficulty];
+  const ContentIcon = contentTypeIcons[content.contentType] || FileText;
+  const gradientColor = categoryColors[content.category] || categoryColors.science;
+  const difficulty = difficultyLabels[content.difficulty] || difficultyLabels.debutant;
+
+  const { data: learnScoreData } = useQuery<{
+    learnScore: number;
+    qualityIndicators: { clarity: number; accuracy: number; engagement: number; depth: number };
+    pedagogicalFeedback: string;
+  }>({
+    queryKey: ["/api/ai/learnscore", content.id],
+    enabled: showLearnScore,
+  });
 
   const handleLike = () => {
     setLiked(!liked);
@@ -86,11 +103,10 @@ export function ContentCard({
       transition={{ duration: 0.3 }}
     >
       <Card className="overflow-hidden" data-testid={`content-card-${content.id}`}>
-        {/* Content Header */}
         <div className="p-4 pb-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border-2 border-primary/20">
-              <AvatarImage src={content.authorAvatar} />
+              <AvatarImage src={content.authorAvatar ?? undefined} />
               <AvatarFallback className="gradient-stem text-white text-sm">
                 {content.authorName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
@@ -114,7 +130,6 @@ export function ContentCard({
           </div>
         </div>
 
-        {/* Content Body */}
         <div className="relative">
           {content.contentType === "video" && content.videoUrl && (
             <div className="aspect-video bg-muted relative overflow-hidden">
@@ -176,7 +191,6 @@ export function ContentCard({
           )}
         </div>
 
-        {/* Content Info */}
         <div className="p-4">
           <h3 className="font-bold text-lg mb-1 line-clamp-2">{content.title}</h3>
           {content.description && (
@@ -193,7 +207,6 @@ export function ContentCard({
             </div>
           )}
 
-          {/* Room Badge */}
           {content.roomName && (
             <button
               onClick={onJoinRoom}
@@ -211,8 +224,57 @@ export function ContentCard({
             </button>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-2 border-t">
+          {showLearnScore && learnScoreData && (
+            <div className="mb-3">
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="flex items-center justify-between gap-2 w-full p-2 rounded-lg bg-accent/5 border border-accent/10"
+                data-testid={`button-learnscore-${content.id}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-accent" />
+                  <span className="text-sm font-medium">LearnScore</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-accent">
+                    {learnScoreData.learnScore}/100
+                  </span>
+                  {showDetails ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </div>
+              </button>
+
+              {showDetails && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="mt-2 p-3 rounded-lg bg-muted/30 space-y-2"
+                >
+                  {Object.entries(learnScoreData.qualityIndicators).map(([key, value]) => (
+                    <div key={key} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground capitalize">
+                          {key === "clarity" ? "Clarté" : key === "accuracy" ? "Précision" : key === "engagement" ? "Engagement" : "Profondeur"}
+                        </span>
+                        <span className="font-medium">{value}%</span>
+                      </div>
+                      <Progress value={value} className="h-1.5" />
+                    </div>
+                  ))}
+                  {learnScoreData.pedagogicalFeedback && (
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                      {learnScoreData.pedagogicalFeedback}
+                    </p>
+                  )}
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-1 pt-2 border-t">
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"

@@ -2,6 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import {
+  analyzeContent,
+  analyzeDiscussionQuality,
+  getSmartRecommendations,
+  analyzeUserProfile,
+  chatWithAssistant,
+  calculateLearnScore,
+} from "./ai";
 
 const joinRoomSchema = z.object({
   userId: z.string().min(1),
@@ -386,6 +394,139 @@ export async function registerRoutes(
       res.json(engagement);
     } catch (error) {
       res.status(500).json({ error: "Failed to track engagement" });
+    }
+  });
+
+  app.post("/api/ai/analyze-content", async (req, res) => {
+    try {
+      const { title, content, contentType } = req.body;
+      if (!title || !content) {
+        return res.status(400).json({ error: "Title and content are required" });
+      }
+      const analysis = await analyzeContent(title, content, contentType || "text_post");
+      res.json(analysis);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze content" });
+    }
+  });
+
+  app.post("/api/ai/analyze-comment", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+      const quality = await analyzeDiscussionQuality(text);
+      res.json(quality);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze comment" });
+    }
+  });
+
+  app.post("/api/ai/recommendations", async (req, res) => {
+    try {
+      const { interests, level, recentInteractions } = req.body;
+      const recommendations = await getSmartRecommendations(
+        interests || [],
+        level || "curieux",
+        recentInteractions || []
+      );
+
+      const allContent = await storage.getAllContent();
+      const weights = recommendations.weights;
+
+      const scored = allContent.map((c) => ({
+        ...c,
+        recommendationScore: (weights[c.category] || 0.25) * 100,
+      }));
+      scored.sort((a, b) => b.recommendationScore - a.recommendationScore);
+
+      res.json({
+        contents: scored.slice(0, 20),
+        explanation: recommendations.explanation,
+        weights: recommendations.weights,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get recommendations" });
+    }
+  });
+
+  app.post("/api/ai/smart-profile", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "userId is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      const userContent = await storage.getContentByAuthor(userId);
+      const quizAttempts = await storage.getUserQuizAttempts(userId);
+
+      const categoriesEngaged = Array.from(new Set(userContent.map((c) => c.category)));
+      const quizScores = quizAttempts.map((a) =>
+        Math.round((a.score / a.totalQuestions) * 100)
+      );
+
+      const profileData = await analyzeUserProfile({
+        xp: user?.xp || 0,
+        contentCount: userContent.length,
+        quizScores,
+        interests: user?.interests || [],
+        level: user?.level || "curieux",
+        categoriesEngaged,
+      });
+
+      res.json(profileData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze profile" });
+    }
+  });
+
+  app.post("/api/ai/assistant", async (req, res) => {
+    try {
+      const { messages, context } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Messages array is required" });
+      }
+      const response = await chatWithAssistant(messages, context);
+      res.json({ response });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get assistant response" });
+    }
+  });
+
+  app.get("/api/ai/learnscore/:contentId", async (req, res) => {
+    try {
+      const content = await storage.getContent(req.params.contentId);
+      if (!content) {
+        return res.status(404).json({ error: "Content not found" });
+      }
+
+      const quizAttempts = await storage.getQuizAttempts(req.params.contentId);
+      const avgQuizScore = quizAttempts.length > 0
+        ? quizAttempts.reduce((sum, a) => sum + (a.score / a.totalQuestions) * 100, 0) / quizAttempts.length
+        : 0;
+
+      const textForAnalysis = content.textContent || content.description || content.title;
+      const analysis = await analyzeContent(content.title, textForAnalysis, content.contentType);
+
+      const learnScore = calculateLearnScore({
+        likes: content.likes ?? 0,
+        comments: content.comments ?? 0,
+        shares: content.shares ?? 0,
+        quizAttempts: quizAttempts.length,
+        avgQuizScore,
+        aiQualityScore: analysis.learnScore,
+      });
+
+      res.json({
+        learnScore,
+        qualityIndicators: analysis.qualityIndicators,
+        pedagogicalFeedback: analysis.pedagogicalFeedback,
+        aiAnalysis: analysis,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to calculate LearnScore" });
     }
   });
 

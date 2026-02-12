@@ -10,6 +10,7 @@ STEM FLOW is a mobile-first educational application that makes learning Science,
 - **Community Rooms**: Social learning spaces with roles and challenges
 - **Gamification**: Missions, XP rewards, and progression system
 - **AI Personalization**: Difficulty adjustment based on engagement metrics
+- **AI Features**: LearnScore, smart recommendations, content analysis, AI assistant, smart profile evolution
 
 ### Slogan
 "Scroll. Learn. Level Up."
@@ -63,17 +64,19 @@ client/
 │   │   ├── userState.ts              # Zustand user state store
 │   │   └── utils.ts                  # Utility functions
 │   ├── pages/
-│   │   ├── Feed.tsx                  # Main content feed
+│   │   ├── AIAssistant.tsx           # AI tutoring assistant chat
+│   │   ├── Feed.tsx                  # Main content feed with smart recommendations
 │   │   ├── Home.tsx                  # Landing page
 │   │   ├── Missions.tsx              # User missions/gamification
 │   │   ├── Onboarding.tsx            # 4-step onboarding flow
-│   │   ├── Profile.tsx               # User profile and stats
+│   │   ├── Profile.tsx               # User profile with AI smart evolution
 │   │   ├── RoomDetail.tsx            # Room detail with tabs
 │   │   └── Rooms.tsx                 # Room listing page
 │   ├── App.tsx                       # Main app with routing
 │   └── index.css                     # Theme colors (African Innovation)
 ├── index.html                        # HTML entry with meta tags
 server/
+├── ai.ts                             # AI service (OpenAI) - analysis, recommendations, assistant
 ├── routes.ts                         # API endpoints with Zod validation
 ├── storage.ts                        # In-memory storage with seed data
 └── index.ts                          # Express server setup
@@ -128,6 +131,12 @@ shared/
 | GET | `/api/users/:id` | Get user profile |
 | PATCH | `/api/users/:id` | Update user profile |
 | POST | `/api/engagement/video` | Track video engagement |
+| POST | `/api/ai/analyze-content` | AI content analysis (subject, difficulty, tags, LearnScore) |
+| POST | `/api/ai/analyze-comment` | AI discussion quality detection |
+| POST | `/api/ai/recommendations` | Smart feed recommendations based on user profile |
+| POST | `/api/ai/smart-profile` | AI smart profile evolution analysis |
+| POST | `/api/ai/assistant` | AI STEM tutoring assistant chat |
+| GET | `/api/ai/learnscore/:contentId` | Calculate LearnScore for content |
 
 ## Gradient Utilities
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ContentCard } from "@/components/feed/ContentCard";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Lightbulb,
   Cpu,
@@ -17,6 +18,8 @@ import {
   Calculator,
   Flame,
   Zap,
+  Brain,
+  Sparkles,
 } from "lucide-react";
 import type { Content } from "@shared/schema";
 
@@ -32,20 +35,44 @@ export default function Feed() {
   const [, setLocation] = useLocation();
   const { profile, xp, streak } = useUserState();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [smartFeed, setSmartFeed] = useState(false);
+  const [smartExplanation, setSmartExplanation] = useState("");
 
   const { data: contents, isLoading } = useQuery<Content[]>({
     queryKey: ["/api/feed", selectedCategory],
   });
 
-  const filteredContents = contents?.filter(
-    (content) => selectedCategory === "all" || content.category === selectedCategory
-  );
+  const smartFeedMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/ai/recommendations", {
+        interests: profile?.interests || [],
+        level: profile?.level || "curieux",
+        recentInteractions: [],
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setSmartExplanation(data.explanation);
+    },
+  });
+
+  const handleSmartFeedToggle = () => {
+    if (!smartFeed) {
+      smartFeedMutation.mutate();
+    }
+    setSmartFeed(!smartFeed);
+  };
+
+  const displayContents = smartFeed && smartFeedMutation.data
+    ? smartFeedMutation.data.contents
+    : contents?.filter(
+        (content: Content) => selectedCategory === "all" || content.category === selectedCategory
+      );
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between gap-3 p-4">
           <StemFlowLogo size="sm" showText={false} />
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 text-[#F5B700]">
@@ -60,9 +87,19 @@ export default function Feed() {
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
-          {categories.map((cat) => {
+        <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
+          <Button
+            variant={smartFeed ? "default" : "secondary"}
+            size="sm"
+            onClick={handleSmartFeedToggle}
+            className={smartFeed ? "gradient-stem text-white" : ""}
+            disabled={smartFeedMutation.isPending}
+            data-testid="button-smart-feed"
+          >
+            <Brain className={`h-4 w-4 mr-1 ${smartFeedMutation.isPending ? "animate-spin" : ""}`} />
+            IA
+          </Button>
+          {!smartFeed && categories.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.value;
             return (
@@ -82,9 +119,17 @@ export default function Feed() {
         </div>
       </header>
 
-      {/* Feed Content */}
+      {smartFeed && smartExplanation && (
+        <div className="px-4 pt-3 max-w-lg mx-auto">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-accent/10 border border-accent/20">
+            <Sparkles className="h-4 w-4 text-accent flex-shrink-0" />
+            <p className="text-xs text-accent" data-testid="text-smart-explanation">{smartExplanation}</p>
+          </div>
+        </div>
+      )}
+
       <main className="p-4 space-y-4 max-w-lg mx-auto">
-        {isLoading ? (
+        {(isLoading || smartFeedMutation.isPending) ? (
           <>
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-3">
@@ -100,8 +145,8 @@ export default function Feed() {
               </div>
             ))}
           </>
-        ) : filteredContents && filteredContents.length > 0 ? (
-          filteredContents.map((content, index) => (
+        ) : displayContents && displayContents.length > 0 ? (
+          displayContents.map((content: Content, index: number) => (
             <motion.div
               key={content.id}
               initial={{ opacity: 0, y: 20 }}
@@ -111,6 +156,7 @@ export default function Feed() {
               <ContentCard
                 content={content}
                 onJoinRoom={() => setLocation(`/rooms/${content.roomId}`)}
+                showLearnScore={smartFeed}
               />
             </motion.div>
           ))
