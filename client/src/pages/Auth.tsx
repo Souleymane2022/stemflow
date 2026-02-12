@@ -142,10 +142,12 @@ export default function Auth() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center"
+        className="mb-10 text-center"
       >
-        <StemFlowLogo />
-        <p className="text-white/70 text-sm mt-2">Scroll. Learn. Level Up.</p>
+        <div className="flex justify-center mb-3">
+          <StemFlowLogo size="sm" />
+        </div>
+        <p className="text-white/80 text-sm italic tracking-wide">Scroll. Learn. Level Up.</p>
       </motion.div>
 
       <motion.div
@@ -155,25 +157,31 @@ export default function Auth() {
       >
         <Card className="p-6">
           {step !== "activate" && (
-            <div className="flex gap-2 mb-6">
-              <Button
-                variant={step === "login" ? "default" : "ghost"}
-                className="flex-1"
+            <div className="flex items-center gap-1 mb-6">
+              <button
                 onClick={() => setStep("login")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  step === "login"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
+                }`}
                 data-testid="button-switch-login"
               >
-                <LogIn className="h-4 w-4 mr-2" />
+                <LogIn className="h-4 w-4" />
                 Connexion
-              </Button>
-              <Button
-                variant={step === "register" ? "default" : "ghost"}
-                className="flex-1"
+              </button>
+              <button
                 onClick={() => setStep("register")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  step === "register"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
+                }`}
                 data-testid="button-switch-register"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
+                <UserPlus className="h-4 w-4" />
                 Inscription
-              </Button>
+              </button>
             </div>
           )}
 
