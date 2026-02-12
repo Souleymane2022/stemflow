@@ -10,6 +10,7 @@ import type {
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(id: string, profile: Partial<User>): Promise<User | undefined>;
 
@@ -18,9 +19,13 @@ export interface IStorage {
   getContentByRoom(roomId: string): Promise<Content[]>;
   getContent(id: string): Promise<Content | undefined>;
   createContent(content: InsertContent): Promise<Content>;
-  likeContent(id: string): Promise<void>;
+  toggleLike(contentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+  hasUserLiked(contentId: string, userId: string): Promise<boolean>;
+  getUserLikes(userId: string): Promise<string[]>;
+  shareContent(contentId: string): Promise<void>;
   getContentByAuthor(authorId: string): Promise<Content[]>;
   incrementCommentCount(contentId: string): Promise<void>;
+  decrementCommentCount(contentId: string): Promise<void>;
 
   getQuizQuestions(contentId: string): Promise<QuizQuestion[]>;
   createQuizQuestion(question: InsertQuizQuestion): Promise<QuizQuestion>;
@@ -31,6 +36,7 @@ export interface IStorage {
 
   getComments(contentId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
+  deleteComment(commentId: string, userId: string): Promise<boolean>;
   likeComment(id: string): Promise<void>;
 
   getAllBadges(): Promise<Badge[]>;
@@ -67,6 +73,7 @@ export class MemStorage implements IStorage {
   private comments: Map<string, Comment>;
   private badges: Map<string, Badge>;
   private userBadges: Map<string, UserBadge>;
+  private contentLikes: Map<string, Set<string>>;
 
   constructor() {
     this.users = new Map();
@@ -81,6 +88,7 @@ export class MemStorage implements IStorage {
     this.comments = new Map();
     this.badges = new Map();
     this.userBadges = new Map();
+    this.contentLikes = new Map();
 
     this.seedData();
   }
@@ -139,14 +147,14 @@ export class MemStorage implements IStorage {
     ];
     missions.forEach((mission) => this.missions.set(mission.id, mission));
 
-    const leaderboardUsers = [
-      { id: "lb-user-1", username: "Dr. Marie Curie", password: "", xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"] },
-      { id: "lb-user-2", username: "Alan Turing", password: "", xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"] },
-      { id: "lb-user-3", username: "Ada Lovelace", password: "", xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"] },
-      { id: "lb-user-4", username: "Pierre Fermat", password: "", xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"] },
-      { id: "lb-user-5", username: "Nikola Tesla", password: "", xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"] },
+    const leaderboardUsers: User[] = [
+      { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
+      { id: "lb-user-2", username: "Alan Turing", email: "alan@stemflow.com", password: "", xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-3", username: "Ada Lovelace", email: "ada@stemflow.com", password: "", xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"], createdAt: new Date().toISOString() },
+      { id: "lb-user-4", username: "Pierre Fermat", email: "pierre@stemflow.com", password: "", xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-5", username: "Nikola Tesla", email: "nikola@stemflow.com", password: "", xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"], createdAt: new Date().toISOString() },
     ];
-    leaderboardUsers.forEach((u) => this.users.set(u.id, u as User));
+    leaderboardUsers.forEach((u) => this.users.set(u.id, u));
 
     const seedComments: Comment[] = [
       { id: "comment-1", contentId: "content-1", userId: "lb-user-1", authorName: "Dr. Marie Curie", text: "Excellent contenu ! Les trous noirs sont fascinants.", likes: 5, createdAt: new Date(Date.now() - 3600000).toISOString() },
@@ -164,18 +172,24 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find((user) => user.username === username);
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find((user) => user.email === email.toLowerCase());
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = {
       ...insertUser,
       id,
-      preferredLanguage: null,
+      email: insertUser.email.toLowerCase(),
+      preferredLanguage: "fr",
       educationLevel: null,
       interests: null,
-      level: null,
-      xp: null,
-      streak: null,
-      onboardingCompleted: null,
+      level: "curieux",
+      xp: 0,
+      streak: 0,
+      onboardingCompleted: false,
+      createdAt: new Date().toISOString(),
     };
     this.users.set(id, user);
     return user;
@@ -234,11 +248,45 @@ export class MemStorage implements IStorage {
     return newContent;
   }
 
-  async likeContent(id: string): Promise<void> {
-    const content = this.contents.get(id);
-    if (content) {
+  async toggleLike(contentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const content = this.contents.get(contentId);
+    if (!content) return { liked: false, likeCount: 0 };
+
+    if (!this.contentLikes.has(contentId)) {
+      this.contentLikes.set(contentId, new Set());
+    }
+    const likes = this.contentLikes.get(contentId)!;
+
+    if (likes.has(userId)) {
+      likes.delete(userId);
+      content.likes = Math.max(0, (content.likes ?? 0) - 1);
+      this.contents.set(contentId, content);
+      return { liked: false, likeCount: content.likes };
+    } else {
+      likes.add(userId);
       content.likes = (content.likes ?? 0) + 1;
-      this.contents.set(id, content);
+      this.contents.set(contentId, content);
+      return { liked: true, likeCount: content.likes };
+    }
+  }
+
+  async hasUserLiked(contentId: string, userId: string): Promise<boolean> {
+    return this.contentLikes.get(contentId)?.has(userId) || false;
+  }
+
+  async getUserLikes(userId: string): Promise<string[]> {
+    const likedContentIds: string[] = [];
+    this.contentLikes.forEach((userSet, contentId) => {
+      if (userSet.has(userId)) likedContentIds.push(contentId);
+    });
+    return likedContentIds;
+  }
+
+  async shareContent(contentId: string): Promise<void> {
+    const content = this.contents.get(contentId);
+    if (content) {
+      content.shares = (content.shares ?? 0) + 1;
+      this.contents.set(contentId, content);
     }
   }
 
@@ -252,6 +300,14 @@ export class MemStorage implements IStorage {
     const content = this.contents.get(contentId);
     if (content) {
       content.comments = (content.comments ?? 0) + 1;
+      this.contents.set(contentId, content);
+    }
+  }
+
+  async decrementCommentCount(contentId: string): Promise<void> {
+    const content = this.contents.get(contentId);
+    if (content) {
+      content.comments = Math.max(0, (content.comments ?? 0) - 1);
       this.contents.set(contentId, content);
     }
   }
@@ -305,6 +361,15 @@ export class MemStorage implements IStorage {
     this.comments.set(id, newComment);
     await this.incrementCommentCount(comment.contentId);
     return newComment;
+  }
+
+  async deleteComment(commentId: string, userId: string): Promise<boolean> {
+    const comment = this.comments.get(commentId);
+    if (!comment) return false;
+    if (comment.userId !== userId) return false;
+    this.comments.delete(commentId);
+    await this.decrementCommentCount(comment.contentId);
+    return true;
   }
 
   async likeComment(id: string): Promise<void> {

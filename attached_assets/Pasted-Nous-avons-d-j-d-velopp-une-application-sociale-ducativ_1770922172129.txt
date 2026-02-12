@@ -1,0 +1,90 @@
+Nous avons déjà développé une application sociale éducative pour STEM FLOW.
+
+Nous voulons maintenant améliorer la plateforme avec les fonctionnalités suivantes :
+
+1️⃣ AUTHENTIFICATION SÉCURISÉE
+- Implémenter un système complet d’authentification sécurisé :
+   • Inscription (email + mot de passe)
+   • Connexion
+   • Déconnexion
+   • Hashage sécurisé des mots de passe (bcrypt ou équivalent)
+   • Gestion des sessions sécurisées (JWT ou sessions sécurisées)
+   • Protection des routes (impossible d’accéder à l’application sans être connecté)
+   • Vérification email optionnelle
+- Empêcher l’accès aux pages principales si l’utilisateur n’est pas authentifié.
+
+2️⃣ SYSTÈME DE COMMENTAIRES
+- Ajouter un système de commentaires fonctionnel :
+   • Chaque post (texte, image ou vidéo) doit pouvoir recevoir des commentaires
+   • Afficher la liste des commentaires sous chaque post
+   • Permettre à un utilisateur connecté d’ajouter un commentaire
+   • Associer chaque commentaire à :
+       - un utilisateur
+       - un post
+       - une date
+   • Mise à jour en temps réel si possible
+   • Possibilité de supprimer son propre commentaire
+
+3️⃣ SYSTÈME DE LIKE
+- Vérifier que :
+   • Un utilisateur ne peut liker qu’une seule fois un post
+   • Le compteur de likes s’actualise dynamiquement
+   • Possibilité d’unlike
+
+4️⃣ SYSTÈME DE PARTAGE
+- Ajouter un bouton “Partager”
+- Intégrer partage vers :
+   • Facebook
+   • Twitter (X)
+   • WhatsApp
+   • LinkedIn
+- Générer automatiquement un lien public du post
+- Intégrer l’API Web Share si disponible (mobile)
+
+5️⃣ STRUCTURE BASE DE DONNÉES
+Créer les modèles suivants :
+
+User :
+- id
+- name
+- email
+- password (hashé)
+- createdAt
+
+Post :
+- id
+- content (texte)
+- mediaUrl (optionnel)
+- authorId
+- createdAt
+
+Comment :
+- id
+- content
+- authorId
+- postId
+- createdAt
+
+Like :
+- id
+- userId
+- postId
+
+6️⃣ SÉCURITÉ
+- Protection contre :
+   • XSS
+   • CSRF
+   • Injection SQL
+- Validation des inputs
+- Limitation du spam
+
+7️⃣ UX
+- Afficher :
+   • Nombre de likes
+   • Nombre de commentaires
+   • Photo de profil utilisateur
+- Interface moderne et propre
+
+Technologies utilisées : (adaptez selon votre stack : React / Node / Supabase / Firebase / Prisma / PostgreSQL…)
+
+L’objectif est de transformer l’application en véritable réseau social éducatif sécurisé et interactif.

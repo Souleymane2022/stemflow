@@ -103,8 +103,22 @@ export default function Onboarding() {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (formData.preferredLanguage && formData.educationLevel && formData.interests && formData.level) {
+      const { userId } = useUserState.getState();
+      if (userId) {
+        try {
+          await fetch(`/api/users/${userId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              ...formData,
+              onboardingCompleted: true,
+            }),
+          });
+        } catch {}
+      }
       setProfile(formData as UserProfile);
       setOnboardingCompleted(true);
       toast({

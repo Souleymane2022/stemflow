@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { useUserState } from "@/lib/userState";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   Heart,
   MessageCircle,
@@ -23,15 +27,15 @@ import {
   Brain,
   ChevronDown,
   ChevronUp,
+  Send,
+  Trash2,
+  X,
 } from "lucide-react";
-import type { Content } from "@shared/schema";
+import { SiFacebook, SiWhatsapp, SiLinkedin } from "react-icons/si";
+import type { Content, Comment } from "@shared/schema";
 
 interface ContentCardProps {
-  content: Content;
-  onLike?: () => void;
-  onComment?: () => void;
-  onShare?: () => void;
-  onSave?: () => void;
+  content: Content & { userLiked?: boolean };
   onJoinRoom?: () => void;
   showLearnScore?: boolean;
 }
@@ -59,18 +63,21 @@ const difficultyLabels: Record<string, { label: string; color: string }> = {
 
 export function ContentCard({
   content,
-  onLike,
-  onComment,
-  onShare,
-  onSave,
   onJoinRoom,
   showLearnScore = false,
 }: ContentCardProps) {
   const [, setLocation] = useLocation();
-  const [liked, setLiked] = useState(false);
+  const { userId } = useUserState();
+  const { toast } = useToast();
+  const [liked, setLiked] = useState(content.userLiked || false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(content.likes ?? 0);
+  const [shareCount, setShareCount] = useState(content.shares ?? 0);
+  const [commentCount, setCommentCount] = useState(content.comments ?? 0);
   const [showDetails, setShowDetails] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [commentText, setCommentText] = useState("");
 
   const ContentIcon = contentTypeIcons[content.contentType] || FileText;
   const gradientColor = categoryColors[content.category] || categoryColors.science;
@@ -85,15 +92,123 @@ export function ContentCard({
     enabled: showLearnScore,
   });
 
+  const { data: comments, refetch: refetchComments } = useQuery<Comment[]>({
+    queryKey: ["/api/content", content.id, "comments"],
+    enabled: showComments,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/content/${content.id}/like`);
+      return res.json();
+    },
+    onSuccess: (data: { liked: boolean; likeCount: number }) => {
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+    },
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const res = await apiRequest("POST", `/api/content/${content.id}/comments`, { text });
+      return res.json();
+    },
+    onSuccess: () => {
+      setCommentText("");
+      setCommentCount((c) => c + 1);
+      refetchComments();
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: string) => {
+      await apiRequest("DELETE", `/api/comments/${commentId}`);
+    },
+    onSuccess: () => {
+      setCommentCount((c) => Math.max(0, c - 1));
+      refetchComments();
+    },
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/content/${content.id}/share`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setShareCount(data.shares);
+    },
+  });
+
   const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1);
-    onLike?.();
+    likeMutation.mutate();
   };
 
   const handleSave = () => {
     setSaved(!saved);
-    onSave?.();
+  };
+
+  const handleSubmitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (commentText.trim()) {
+      commentMutation.mutate(commentText.trim());
+    }
+  };
+
+  const shareUrl = `${window.location.origin}/content/${content.id}`;
+  const shareTitle = content.title;
+  const shareText = content.description || content.title;
+
+  const handleShare = async (platform?: string) => {
+    shareMutation.mutate();
+
+    if (!platform && navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+        toast({ title: "Partagé !", description: "Contenu partagé avec succès" });
+        setShowShareMenu(false);
+        return;
+      } catch {}
+    }
+
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedTitle = encodeURIComponent(shareTitle);
+    const encodedText = encodeURIComponent(shareText);
+
+    let url = "";
+    switch (platform) {
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+        break;
+      case "whatsapp":
+        url = `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`;
+        break;
+      case "linkedin":
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+        break;
+    }
+
+    if (url) {
+      window.open(url, "_blank", "width=600,height=400");
+      toast({ title: "Lien ouvert", description: `Partage via ${platform}` });
+    }
+    setShowShareMenu(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "À l'instant";
+    if (minutes < 60) return `il y a ${minutes}min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `il y a ${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `il y a ${days}j`;
   };
 
   return (
@@ -281,6 +396,7 @@ export function ContentCard({
                 size="sm"
                 onClick={handleLike}
                 className={liked ? "text-red-500" : ""}
+                disabled={likeMutation.isPending}
                 data-testid={`button-like-${content.id}`}
               >
                 <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
@@ -289,21 +405,88 @@ export function ContentCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onComment}
+                onClick={() => setShowComments(!showComments)}
+                className={showComments ? "text-accent" : ""}
                 data-testid={`button-comment-${content.id}`}
               >
-                <MessageCircle className="h-5 w-5" />
-                <span className="ml-1 text-sm">{content.comments ?? 0}</span>
+                <MessageCircle className={`h-5 w-5 ${showComments ? "fill-current" : ""}`} />
+                <span className="ml-1 text-sm">{commentCount}</span>
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onShare}
-                data-testid={`button-share-${content.id}`}
-              >
-                <Share2 className="h-5 w-5" />
-                <span className="ml-1 text-sm">{content.shares ?? 0}</span>
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  data-testid={`button-share-${content.id}`}
+                >
+                  <Share2 className="h-5 w-5" />
+                  <span className="ml-1 text-sm">{shareCount}</span>
+                </Button>
+
+                <AnimatePresence>
+                  {showShareMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="absolute bottom-full left-0 mb-2 p-2 rounded-lg bg-card border shadow-lg z-20 min-w-[200px]"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b">
+                        <span className="text-xs font-medium text-muted-foreground">Partager via</span>
+                        <button onClick={() => setShowShareMenu(false)} data-testid="button-close-share">
+                          <X className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <button
+                          onClick={() => handleShare("facebook")}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
+                          data-testid={`button-share-facebook-${content.id}`}
+                        >
+                          <SiFacebook className="h-5 w-5 text-[#1877F2]" />
+                          <span className="text-[10px] text-muted-foreground">Facebook</span>
+                        </button>
+                        <button
+                          onClick={() => handleShare("twitter")}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
+                          data-testid={`button-share-twitter-${content.id}`}
+                        >
+                          <X className="h-5 w-5" />
+                          <span className="text-[10px] text-muted-foreground">X</span>
+                        </button>
+                        <button
+                          onClick={() => handleShare("whatsapp")}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
+                          data-testid={`button-share-whatsapp-${content.id}`}
+                        >
+                          <SiWhatsapp className="h-5 w-5 text-[#25D366]" />
+                          <span className="text-[10px] text-muted-foreground">WhatsApp</span>
+                        </button>
+                        <button
+                          onClick={() => handleShare("linkedin")}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
+                          data-testid={`button-share-linkedin-${content.id}`}
+                        >
+                          <SiLinkedin className="h-5 w-5 text-[#0A66C2]" />
+                          <span className="text-[10px] text-muted-foreground">LinkedIn</span>
+                        </button>
+                      </div>
+                      {typeof navigator.share === "function" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => handleShare()}
+                          data-testid={`button-share-native-${content.id}`}
+                        >
+                          <Share2 className="h-3.5 w-3.5 mr-1" />
+                          Partager...
+                        </Button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
             <Button
               variant="ghost"
@@ -315,6 +498,85 @@ export function ContentCard({
               <Bookmark className={`h-5 w-5 ${saved ? "fill-current" : ""}`} />
             </Button>
           </div>
+
+          <AnimatePresence>
+            {showComments && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="mt-3 pt-3 border-t overflow-hidden"
+              >
+                <form
+                  onSubmit={handleSubmitComment}
+                  className="flex items-center gap-2 mb-3"
+                >
+                  <Input
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Ajouter un commentaire..."
+                    className="flex-1 text-sm"
+                    maxLength={500}
+                    data-testid={`input-comment-${content.id}`}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!commentText.trim() || commentMutation.isPending}
+                    data-testid={`button-submit-comment-${content.id}`}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {!comments ? (
+                    <div className="text-center py-3">
+                      <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin mx-auto" />
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-3">
+                      Aucun commentaire. Sois le premier !
+                    </p>
+                  ) : (
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="flex gap-2 p-2 rounded-lg bg-muted/30"
+                        data-testid={`comment-${comment.id}`}
+                      >
+                        <Avatar className="h-7 w-7 flex-shrink-0">
+                          <AvatarFallback className="text-xs gradient-stem text-white">
+                            {comment.authorName.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold truncate">{comment.authorName}</span>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span className="text-[10px] text-muted-foreground">
+                                {formatDate(comment.createdAt)}
+                              </span>
+                              {comment.userId === userId && (
+                                <button
+                                  onClick={() => deleteCommentMutation.mutate(comment.id)}
+                                  className="text-muted-foreground/50 hover:text-destructive transition-colors"
+                                  data-testid={`button-delete-comment-${comment.id}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-snug">{comment.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </Card>
     </motion.div>

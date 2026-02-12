@@ -33,6 +33,8 @@ import {
   Target,
   GraduationCap,
   RefreshCw,
+  Mail,
+  Users,
 } from "lucide-react";
 
 const levelConfig = {
@@ -68,7 +70,7 @@ interface SmartProfileData {
 
 export default function Profile() {
   const [, setLocation] = useLocation();
-  const { profile, xp, streak, userId, reset } = useUserState();
+  const { profile, xp, streak, userId, user, logout } = useUserState();
   const [smartProfile, setSmartProfile] = useState<SmartProfileData | null>(null);
 
   const currentLevel = profile?.level || "curieux";
@@ -94,9 +96,12 @@ export default function Profile() {
     },
   });
 
-  const handleLogout = () => {
-    reset();
-    setLocation("/");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {}
+    logout();
+    setLocation("/auth");
   };
 
   return (
@@ -118,11 +123,11 @@ export default function Profile() {
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-20 w-20 border-4 border-primary/20">
               <AvatarFallback className="gradient-stem text-white text-2xl font-bold">
-                {profile?.preferredLanguage === "fr" ? "TU" : "YOU"}
+                {user?.username?.slice(0, 2).toUpperCase() || "SF"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-1">Apprenant STEM</h2>
+              <h2 className="text-2xl font-bold mb-1" data-testid="text-username">{user?.username || "Apprenant STEM"}</h2>
               <Badge variant="secondary" className="mb-2">
                 {profile?.educationLevel ? educationLabels[profile.educationLevel as keyof typeof educationLabels] : "Non défini"}
               </Badge>
@@ -351,14 +356,75 @@ export default function Profile() {
           </Button>
         </div>
 
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            Contacter l'équipe
+          </h3>
+          <div className="space-y-2">
+            <a
+              href="mailto:contact.equipe.learnxscience@gmail.com"
+              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
+              data-testid="link-contact-team"
+            >
+              <div className="p-2 rounded-full gradient-stem">
+                <Mail className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">STEM FLOW Team</p>
+                <p className="text-xs text-muted-foreground">contact.equipe.learnxscience@gmail.com</p>
+              </div>
+            </a>
+            <a
+              href="mailto:alidossou123456789@gmail.com"
+              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
+              data-testid="link-contact-ali"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs gradient-energy text-white">AL</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm">Ali Dossou</p>
+                <p className="text-xs text-muted-foreground">alidossou123456789@gmail.com</p>
+              </div>
+            </a>
+            <a
+              href="mailto:souleymanemahamatsaleh2000@gmail.com"
+              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
+              data-testid="link-contact-souleymane"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs gradient-innovation text-white">SO</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm">Souleymane</p>
+                <p className="text-xs text-muted-foreground">souleymanemahamatsaleh2000@gmail.com</p>
+              </div>
+            </a>
+            <a
+              href="mailto:ciramamys@gmail.com"
+              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
+              data-testid="link-contact-cira"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs gradient-african text-white">CI</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm">Cira</p>
+                <p className="text-xs text-muted-foreground">ciramamys@gmail.com</p>
+              </div>
+            </a>
+          </div>
+        </Card>
+
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full text-destructive"
           onClick={handleLogout}
           data-testid="button-logout"
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Recommencer l'onboarding
+          Se déconnecter
         </Button>
       </main>
 

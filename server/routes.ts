@@ -1,7 +1,9 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
+import { registerSchema, loginSchema } from "@shared/schema";
 import {
   analyzeContent,
   analyzeDiscussionQuality,
@@ -10,6 +12,13 @@ import {
   chatWithAssistant,
   calculateLearnScore,
 } from "./ai";
+
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: "Non authentifié" });
+  }
+  next();
+}
 
 const joinRoomSchema = z.object({
   userId: z.string().min(1),
@@ -72,8 +81,6 @@ const submitQuizSchema = z.object({
 });
 
 const createCommentSchema = z.object({
-  userId: z.string().min(1),
-  authorName: z.string().min(1),
   text: z.string().min(1).max(500),
 });
 
@@ -82,7 +89,90 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  app.get("/api/feed/:category", async (req, res) => {
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const validation = registerSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Données invalides", details: validation.error.errors });
+      }
+
+      const { username, email, password } = validation.data;
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ error: "Cet email est déjà utilisé" });
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(409).json({ error: "Ce nom d'utilisateur est déjà pris" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const user = await storage.createUser({ username, email, password: hashedPassword });
+
+      req.session.userId = user.id;
+
+      const { password: _, ...safeUser } = user;
+      res.status(201).json(safeUser);
+    } catch (error) {
+      res.status(500).json({ error: "Erreur lors de l'inscription" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const validation = loginSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Données invalides", details: validation.error.errors });
+      }
+
+      const { email, password } = validation.data;
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+      }
+
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Email ou mot de passe incorrect" });
+      }
+
+      req.session.userId = user.id;
+
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      res.status(500).json({ error: "Erreur lors de la connexion" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Erreur lors de la déconnexion" });
+      }
+      res.clearCookie("connect.sid");
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ error: "Utilisateur non trouvé" });
+    }
+
+    const { password: _, ...safeUser } = user;
+    res.json(safeUser);
+  });
+
+  app.get("/api/feed/:category", requireAuth, async (req, res) => {
     try {
       const category = req.params.category;
       let content;
@@ -91,25 +181,33 @@ export async function registerRoutes(
       } else {
         content = await storage.getAllContent();
       }
-      res.json(content);
+
+      const userLikes = await storage.getUserLikes(req.session.userId!);
+      const contentWithLikes = content.map((c) => ({
+        ...c,
+        userLiked: userLikes.includes(c.id),
+      }));
+
+      res.json(contentWithLikes);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch content" });
     }
   });
 
-  app.get("/api/content/:id", async (req, res) => {
+  app.get("/api/content/:id", requireAuth, async (req, res) => {
     try {
       const content = await storage.getContent(req.params.id);
       if (!content) {
         return res.status(404).json({ error: "Content not found" });
       }
-      res.json(content);
+      const userLiked = await storage.hasUserLiked(content.id, req.session.userId!);
+      res.json({ ...content, userLiked });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch content" });
     }
   });
 
-  app.post("/api/content", async (req, res) => {
+  app.post("/api/content", requireAuth, async (req, res) => {
     try {
       const validation = createContentSchema.safeParse(req.body);
       if (!validation.success) {
@@ -136,16 +234,26 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/content/:id/like", async (req, res) => {
+  app.post("/api/content/:id/like", requireAuth, async (req, res) => {
     try {
-      await storage.likeContent(req.params.id);
-      res.json({ success: true });
+      const result = await storage.toggleLike(req.params.id, req.session.userId!);
+      res.json(result);
     } catch (error) {
-      res.status(500).json({ error: "Failed to like content" });
+      res.status(500).json({ error: "Failed to toggle like" });
     }
   });
 
-  app.get("/api/content/:id/comments", async (req, res) => {
+  app.post("/api/content/:id/share", requireAuth, async (req, res) => {
+    try {
+      await storage.shareContent(req.params.id);
+      const content = await storage.getContent(req.params.id);
+      res.json({ success: true, shares: content?.shares ?? 0 });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to share content" });
+    }
+  });
+
+  app.get("/api/content/:id/comments", requireAuth, async (req, res) => {
     try {
       const comments = await storage.getComments(req.params.id);
       res.json(comments);
@@ -154,14 +262,20 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/content/:id/comments", async (req, res) => {
+  app.post("/api/content/:id/comments", requireAuth, async (req, res) => {
     try {
       const validation = createCommentSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
       const comment = await storage.createComment({
-        ...validation.data,
+        text: validation.data.text,
+        userId: user.id,
+        authorName: user.username,
         contentId: req.params.id,
         createdAt: new Date().toISOString(),
       });
@@ -171,7 +285,19 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/content/:id/quiz", async (req, res) => {
+  app.delete("/api/comments/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteComment(req.params.id, req.session.userId!);
+      if (!deleted) {
+        return res.status(403).json({ error: "Impossible de supprimer ce commentaire" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete comment" });
+    }
+  });
+
+  app.get("/api/content/:id/quiz", requireAuth, async (req, res) => {
     try {
       const questions = await storage.getQuizQuestions(req.params.id);
       res.json(questions);
@@ -180,7 +306,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/content/:id/quiz/submit", async (req, res) => {
+  app.post("/api/content/:id/quiz/submit", requireAuth, async (req, res) => {
     try {
       const validation = submitQuizSchema.safeParse(req.body);
       if (!validation.success) {
@@ -219,7 +345,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/content/:id/quiz/stats", async (req, res) => {
+  app.get("/api/content/:id/quiz/stats", requireAuth, async (req, res) => {
     try {
       const attempts = await storage.getQuizAttempts(req.params.id);
       const totalAttempts = attempts.length;
@@ -239,7 +365,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/badges", async (req, res) => {
+  app.get("/api/badges", requireAuth, async (req, res) => {
     try {
       const badges = await storage.getAllBadges();
       res.json(badges);
@@ -248,7 +374,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/users/:id/badges", async (req, res) => {
+  app.get("/api/users/:id/badges", requireAuth, async (req, res) => {
     try {
       const userBadges = await storage.getUserBadges(req.params.id);
       const allBadges = await storage.getAllBadges();
@@ -263,7 +389,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/leaderboard/:category", async (req, res) => {
+  app.get("/api/leaderboard/:category", requireAuth, async (req, res) => {
     try {
       const category = req.params.category === "all" ? undefined : req.params.category;
       const leaderboard = await storage.getLeaderboard(category);
@@ -273,7 +399,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/rooms", async (req, res) => {
+  app.get("/api/rooms", requireAuth, async (req, res) => {
     try {
       const rooms = await storage.getAllRooms();
       res.json(rooms);
@@ -282,7 +408,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/rooms/:id", async (req, res) => {
+  app.get("/api/rooms/:id", requireAuth, async (req, res) => {
     try {
       const room = await storage.getRoom(req.params.id);
       if (!room) {
@@ -294,7 +420,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/rooms/:id/content", async (req, res) => {
+  app.get("/api/rooms/:id/content", requireAuth, async (req, res) => {
     try {
       const content = await storage.getContentByRoom(req.params.id);
       res.json(content);
@@ -303,7 +429,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/rooms/:id/join", async (req, res) => {
+  app.post("/api/rooms/:id/join", requireAuth, async (req, res) => {
     try {
       const validation = joinRoomSchema.safeParse(req.body);
       if (!validation.success) {
@@ -317,17 +443,16 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/missions", async (req, res) => {
+  app.get("/api/missions", requireAuth, async (req, res) => {
     try {
-      const userId = req.query.userId as string || "default";
-      const missions = await storage.getUserMissions(userId);
+      const missions = await storage.getUserMissions(req.session.userId!);
       res.json(missions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch missions" });
     }
   });
 
-  app.patch("/api/missions/:id/progress", async (req, res) => {
+  app.patch("/api/missions/:id/progress", requireAuth, async (req, res) => {
     try {
       const validation = updateMissionProgressSchema.safeParse(req.body);
       if (!validation.success) {
@@ -344,7 +469,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/missions/:id/complete", async (req, res) => {
+  app.post("/api/missions/:id/complete", requireAuth, async (req, res) => {
     try {
       const mission = await storage.completeMission(req.params.id);
       if (!mission) {
@@ -356,19 +481,20 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", requireAuth, async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      res.json(user);
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user" });
     }
   });
 
-  app.patch("/api/users/:id", async (req, res) => {
+  app.patch("/api/users/:id", requireAuth, async (req, res) => {
     try {
       const validation = updateUserProfileSchema.safeParse(req.body);
       if (!validation.success) {
@@ -378,13 +504,14 @@ export async function registerRoutes(
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      res.json(user);
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
     } catch (error) {
       res.status(500).json({ error: "Failed to update user" });
     }
   });
 
-  app.post("/api/engagement/video", async (req, res) => {
+  app.post("/api/engagement/video", requireAuth, async (req, res) => {
     try {
       const validation = videoEngagementSchema.safeParse(req.body);
       if (!validation.success) {
@@ -397,7 +524,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/analyze-content", async (req, res) => {
+  app.post("/api/ai/analyze-content", requireAuth, async (req, res) => {
     try {
       const { title, content, contentType } = req.body;
       if (!title || !content) {
@@ -410,7 +537,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/analyze-comment", async (req, res) => {
+  app.post("/api/ai/analyze-comment", requireAuth, async (req, res) => {
     try {
       const { text } = req.body;
       if (!text) {
@@ -423,7 +550,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/recommendations", async (req, res) => {
+  app.post("/api/ai/recommendations", requireAuth, async (req, res) => {
     try {
       const { interests, level, recentInteractions } = req.body;
       const recommendations = await getSmartRecommendations(
@@ -451,7 +578,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/smart-profile", async (req, res) => {
+  app.post("/api/ai/smart-profile", requireAuth, async (req, res) => {
     try {
       const { userId } = req.body;
       if (!userId) {
@@ -482,7 +609,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/assistant", async (req, res) => {
+  app.post("/api/ai/assistant", requireAuth, async (req, res) => {
     try {
       const { messages, context } = req.body;
       if (!messages || !Array.isArray(messages)) {
@@ -495,7 +622,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/ai/learnscore/:contentId", async (req, res) => {
+  app.get("/api/ai/learnscore/:contentId", requireAuth, async (req, res) => {
     try {
       const content = await storage.getContent(req.params.contentId);
       if (!content) {

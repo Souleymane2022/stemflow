@@ -1,11 +1,12 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useUserState } from "@/lib/userState";
 import { useEffect } from "react";
+import { getQueryFn } from "@/lib/queryClient";
 
 import NotFound from "@/pages/not-found";
 import Onboarding from "@/pages/Onboarding";
@@ -19,6 +20,44 @@ import CreateContent from "@/pages/CreateContent";
 import QuizPlayer from "@/pages/QuizPlayer";
 import Leaderboard from "@/pages/Leaderboard";
 import AIAssistant from "@/pages/AIAssistant";
+import Auth from "@/pages/Auth";
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, setUser, logout } = useUserState();
+  const [location] = useLocation();
+
+  const { data, isLoading } = useQuery<any>({
+    queryKey: ["/api/auth/me"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (data && !isLoading) {
+      setUser(data);
+    } else if (data === null && !isLoading && isAuthenticated) {
+      logout();
+    }
+  }, [data, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="h-8 w-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data && location !== "/auth") {
+    return <Redirect to="/auth" />;
+  }
+
+  return <>{children}</>;
+}
 
 function Router() {
   const { onboardingCompleted } = useUserState();
@@ -56,7 +95,14 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Switch>
+            <Route path="/auth" component={Auth} />
+            <Route>
+              <AuthGuard>
+                <Router />
+              </AuthGuard>
+            </Route>
+          </Switch>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
