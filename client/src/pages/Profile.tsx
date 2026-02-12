@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
@@ -53,9 +52,9 @@ const interestIcons = {
 };
 
 const educationLabels = {
-  college: "Collège",
-  lycee: "Lycée",
-  universite: "Université",
+  college: "Coll\u00e8ge",
+  lycee: "Lyc\u00e9e",
+  universite: "Universit\u00e9",
   autodidacte: "Autodidacte",
 };
 
@@ -104,9 +103,12 @@ export default function Profile() {
     setLocation("/auth");
   };
 
+  const circumference = 2 * Math.PI * 38;
+  const strokeDashoffset = circumference - (xpProgress / 100) * circumference;
+
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between gap-3 p-4">
           <h1 className="text-xl font-bold">Mon Profil</h1>
           <div className="flex items-center gap-2">
@@ -121,24 +123,46 @@ export default function Profile() {
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <Card className="p-6">
           <div className="flex items-center gap-4 mb-6">
-            <Avatar className="h-20 w-20 border-4 border-primary/20">
-              <AvatarFallback className="gradient-stem text-white text-2xl font-bold">
-                {user?.username?.slice(0, 2).toUpperCase() || "SF"}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative flex-shrink-0">
+              <svg className="w-[88px] h-[88px] -rotate-90" viewBox="0 0 88 88">
+                <circle
+                  cx="44" cy="44" r="38"
+                  fill="none"
+                  stroke="hsl(var(--muted))"
+                  strokeWidth="4"
+                />
+                <circle
+                  cx="44" cy="44" r="38"
+                  fill="none"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  className="transition-all duration-700"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[72px] h-[72px] rounded-full gradient-stem flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">
+                    {user?.username?.slice(0, 2).toUpperCase() || "SF"}
+                  </span>
+                </div>
+              </div>
+            </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-1" data-testid="text-username">{user?.username || "Apprenant STEM"}</h2>
               <Badge variant="secondary" className="mb-2">
-                {profile?.educationLevel ? educationLabels[profile.educationLevel as keyof typeof educationLabels] : "Non défini"}
+                {profile?.educationLevel ? educationLabels[profile.educationLevel as keyof typeof educationLabels] : "Non d\u00e9fini"}
               </Badge>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 text-orange-500">
-                  <Flame className="h-4 w-4" />
-                  <span className="text-sm font-bold">{streak} jours</span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F5B700]/10">
+                  <Flame className="h-3.5 w-3.5 text-[#F5B700]" />
+                  <span className="text-xs font-bold text-[#F5B700]">{streak}j</span>
                 </div>
-                <div className="flex items-center gap-1 text-primary">
-                  <Zap className="h-4 w-4" />
-                  <span className="text-sm font-bold">{xp} XP</span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/10">
+                  <Zap className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-xs font-bold text-accent">{xp} XP</span>
                 </div>
               </div>
             </div>
@@ -166,14 +190,14 @@ export default function Profile() {
                 </div>
               )}
             </div>
-            <Progress value={xpProgress} className="h-3" />
+            <Progress value={xpProgress} className="h-2.5" />
           </div>
         </Card>
 
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            Centres d'intérêt
+            <Star className="h-4 w-4 text-accent" />
+            Centres d'int\u00e9r\u00eat
           </h3>
           <div className="flex flex-wrap gap-2">
             {profile?.interests?.map((interest) => {
@@ -196,25 +220,25 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 bg-gradient-to-br from-primary/5 to-accent/5">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <TrendingUp className="h-4 w-4 text-accent" />
             Statistiques
           </h3>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
+            <div className="p-3 rounded-lg bg-background/60">
               <div className="text-2xl font-bold text-primary">{xp}</div>
               <div className="text-xs text-muted-foreground">XP Total</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-orange-500">{streak}</div>
-              <div className="text-xs text-muted-foreground">Série de jours</div>
+            <div className="p-3 rounded-lg bg-background/60">
+              <div className="text-2xl font-bold text-[#F5B700]">{streak}</div>
+              <div className="text-xs text-muted-foreground">S\u00e9rie jours</div>
             </div>
-            <div>
+            <div className="p-3 rounded-lg bg-background/60">
               <div className="text-2xl font-bold text-accent">
                 {profile?.interests?.length || 0}
               </div>
-              <div className="text-xs text-muted-foreground">Intérêts</div>
+              <div className="text-xs text-muted-foreground">Int\u00e9r\u00eats</div>
             </div>
           </div>
         </Card>
@@ -261,7 +285,7 @@ export default function Profile() {
 
               {smartProfile.detectedCompetencies.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Compétences détectées</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Comp\u00e9tences d\u00e9tect\u00e9es</p>
                   <div className="flex flex-wrap gap-1.5">
                     {smartProfile.detectedCompetencies.map((comp) => (
                       <Badge key={comp} variant="secondary" className="text-xs">
@@ -289,7 +313,7 @@ export default function Profile() {
 
               {smartProfile.areasToImprove.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">À améliorer</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">\u00c0 am\u00e9liorer</p>
                   <div className="flex flex-wrap gap-1.5">
                     {smartProfile.areasToImprove.map((area) => (
                       <Badge key={area} variant="secondary" className="text-xs">
@@ -310,8 +334,8 @@ export default function Profile() {
 
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
-            Réalisations récentes
+            <Trophy className="h-4 w-4 text-[#F5B700]" />
+            R\u00e9alisations r\u00e9centes
           </h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
@@ -319,8 +343,8 @@ export default function Profile() {
                 <Flame className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="font-medium text-sm">Première série</p>
-                <p className="text-xs text-muted-foreground">Tu as maintenu ta série 3 jours</p>
+                <p className="font-medium text-sm">Premi\u00e8re s\u00e9rie</p>
+                <p className="text-xs text-muted-foreground">Tu as maintenu ta s\u00e9rie 3 jours</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
@@ -359,7 +383,7 @@ export default function Profile() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            Contacter l'équipe
+            Contacter l'\u00e9quipe
           </h3>
           <a
             href="mailto:contact.equipe.learnxscience@gmail.com"
@@ -383,7 +407,7 @@ export default function Profile() {
           data-testid="button-logout"
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Se déconnecter
+          Se d\u00e9connecter
         </Button>
       </main>
 

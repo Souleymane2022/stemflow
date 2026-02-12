@@ -145,7 +145,7 @@ export default function Auth() {
         className="mb-10 text-center"
       >
         <div className="flex justify-center mb-3">
-          <StemFlowLogo size="sm" />
+          <StemFlowLogo size="md" variant="light" />
         </div>
         <p className="text-white/80 text-sm italic tracking-wide">Scroll. Learn. Level Up.</p>
       </motion.div>

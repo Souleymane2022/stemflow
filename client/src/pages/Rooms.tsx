@@ -49,20 +49,20 @@ export default function Rooms() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between p-4">
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
+        <div className="flex items-center justify-between gap-3 p-4">
           <div>
             <h1 className="text-xl font-bold">Salons</h1>
-            <p className="text-sm text-muted-foreground">Rejoins une communauté</p>
+            <p className="text-sm text-muted-foreground">Rejoins une communaut\u00e9</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-orange-500">
-              <Flame className="h-4 w-4" />
-              <span className="text-sm font-bold">{streak}</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F5B700]/10">
+              <Flame className="h-3.5 w-3.5 text-[#F5B700]" />
+              <span className="text-xs font-bold text-[#F5B700]">{streak}</span>
             </div>
-            <div className="flex items-center gap-1 text-primary">
-              <Zap className="h-4 w-4" />
-              <span className="text-sm font-bold">{xp}</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/10">
+              <Zap className="h-3.5 w-3.5 text-accent" />
+              <span className="text-xs font-bold text-accent">{xp}</span>
             </div>
             <ThemeToggle />
           </div>

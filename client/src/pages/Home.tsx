@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between p-4 max-w-lg mx-auto">
           <StemFlowLogo size="sm" />
           <ThemeToggle />

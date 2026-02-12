@@ -5,8 +5,6 @@ import { motion } from "framer-motion";
 import { ContentCard } from "@/components/feed/ContentCard";
 import { StemFlowLogo } from "@/components/StemFlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
@@ -71,49 +69,53 @@ export default function Feed() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between gap-3 p-4">
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
+        <div className="flex items-center justify-between gap-3 p-3 px-4">
           <StemFlowLogo size="sm" showText={false} />
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[#F5B700]">
-              <Flame className="h-4 w-4" />
-              <span className="text-sm font-bold">{streak}</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#F5B700]/10">
+              <Flame className="h-3.5 w-3.5 text-[#F5B700]" />
+              <span className="text-xs font-bold text-[#F5B700]">{streak}</span>
             </div>
-            <div className="flex items-center gap-1 text-accent">
-              <Zap className="h-4 w-4" />
-              <span className="text-sm font-bold">{xp}</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-accent/10">
+              <Zap className="h-3.5 w-3.5 text-accent" />
+              <span className="text-xs font-bold text-accent">{xp}</span>
             </div>
             <ThemeToggle />
           </div>
         </div>
 
         <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
-          <Button
-            variant={smartFeed ? "default" : "secondary"}
-            size="sm"
+          <button
             onClick={handleSmartFeedToggle}
-            className={smartFeed ? "gradient-stem text-white" : ""}
             disabled={smartFeedMutation.isPending}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              smartFeed 
+                ? "gradient-stem text-white shadow-md" 
+                : "bg-muted text-muted-foreground"
+            }`}
             data-testid="button-smart-feed"
           >
-            <Brain className={`h-4 w-4 mr-1 ${smartFeedMutation.isPending ? "animate-spin" : ""}`} />
+            <Brain className={`h-3.5 w-3.5 ${smartFeedMutation.isPending ? "animate-spin" : ""}`} />
             IA
-          </Button>
+          </button>
           {!smartFeed && categories.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.value;
             return (
-              <Button
+              <button
                 key={cat.value}
-                variant={isSelected ? "default" : "secondary"}
-                size="sm"
                 onClick={() => setSelectedCategory(cat.value)}
-                className={isSelected ? "gradient-stem text-white" : ""}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  isSelected 
+                    ? "gradient-stem text-white shadow-md" 
+                    : "bg-muted text-muted-foreground"
+                }`}
                 data-testid={`button-category-${cat.value}`}
               >
-                <Icon className="h-4 w-4 mr-1" />
+                <Icon className="h-3.5 w-3.5" />
                 {cat.label}
-              </Button>
+              </button>
             );
           })}
         </div>
@@ -128,11 +130,11 @@ export default function Feed() {
         </div>
       )}
 
-      <main className="p-4 space-y-4 max-w-lg mx-auto">
+      <main className="p-4 space-y-5 max-w-lg mx-auto">
         {(isLoading || smartFeedMutation.isPending) ? (
           <>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-3">
+              <div key={i} className="space-y-3 p-4 rounded-xl bg-card border">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="space-y-2">
@@ -151,7 +153,7 @@ export default function Feed() {
               key={content.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.08 }}
             >
               <ContentCard
                 content={content}

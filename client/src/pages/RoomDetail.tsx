@@ -118,7 +118,7 @@ export default function RoomDetail() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center gap-4 p-4">
           <Button
             variant="ghost"

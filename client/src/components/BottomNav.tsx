@@ -1,5 +1,4 @@
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { CreateButton } from "./CreateButton";
 import {
   Home,
@@ -23,21 +22,27 @@ export function BottomNav() {
   return (
     <>
       <CreateButton />
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t z-30">
-        <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t z-30">
+        <div className="flex items-center justify-around py-1.5 max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive = location === item.path;
             return (
-              <Button
+              <button
                 key={item.path}
-                variant="ghost"
-                className={`flex-col gap-1 h-auto py-2 ${isActive ? "text-accent" : ""}`}
                 onClick={() => setLocation(item.path)}
+                className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+                  isActive 
+                    ? "text-accent" 
+                    : "text-muted-foreground"
+                }`}
                 data-testid={`nav-${item.path.slice(1)}`}
               >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs">{item.label}</span>
-              </Button>
+                {isActive && (
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-accent" />
+                )}
+                <item.icon className={`h-5 w-5 transition-transform ${isActive ? "scale-110" : ""}`} />
+                <span className={`text-[10px] font-medium ${isActive ? "text-accent" : ""}`}>{item.label}</span>
+              </button>
             );
           })}
         </div>

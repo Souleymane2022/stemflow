@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { StemFlowLogo, StemFlowSlogan } from "@/components/StemFlowLogo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useUserState } from "@/lib/userState";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -28,34 +27,34 @@ import type { UserProfile } from "@shared/schema";
 const steps = [
   { id: "language", title: "Langue", icon: Globe },
   { id: "education", title: "Niveau", icon: GraduationCap },
-  { id: "interests", title: "Intérêts", icon: Lightbulb },
-  { id: "level", title: "Départ", icon: Sparkles },
+  { id: "interests", title: "Int\u00e9r\u00eats", icon: Lightbulb },
+  { id: "level", title: "D\u00e9part", icon: Sparkles },
 ];
 
 const languages = [
-  { value: "fr", label: "Français" },
+  { value: "fr", label: "Fran\u00e7ais" },
   { value: "en", label: "English" },
 ];
 
 const educationLevels = [
-  { value: "college", label: "Collège", description: "11-15 ans" },
-  { value: "lycee", label: "Lycée", description: "15-18 ans" },
-  { value: "universite", label: "Université", description: "18+ ans" },
+  { value: "college", label: "Coll\u00e8ge", description: "11-15 ans" },
+  { value: "lycee", label: "Lyc\u00e9e", description: "15-18 ans" },
+  { value: "universite", label: "Universit\u00e9", description: "18+ ans" },
   { value: "autodidacte", label: "Autodidacte", description: "Apprentissage libre" },
 ];
 
 const stemInterests = [
   { value: "science", label: "Science", icon: Lightbulb, color: "from-blue-500 to-cyan-400" },
   { value: "technology", label: "Technologie", icon: Cpu, color: "from-purple-500 to-pink-400" },
-  { value: "engineering", label: "Ingénierie", icon: Wrench, color: "from-orange-500 to-yellow-400" },
-  { value: "mathematics", label: "Mathématiques", icon: Calculator, color: "from-green-500 to-emerald-400" },
+  { value: "engineering", label: "Ing\u00e9nierie", icon: Wrench, color: "from-orange-500 to-yellow-400" },
+  { value: "mathematics", label: "Math\u00e9matiques", icon: Calculator, color: "from-green-500 to-emerald-400" },
 ];
 
 const startingLevels = [
-  { value: "curieux", label: "Curieux", description: "Je découvre", icon: Sparkles },
+  { value: "curieux", label: "Curieux", description: "Je d\u00e9couvre", icon: Sparkles },
   { value: "explorateur", label: "Explorateur", description: "J'explore activement", icon: Compass },
   { value: "analyste", label: "Analyste", description: "J'analyse en profondeur", icon: BarChart3 },
-  { value: "challenger", label: "Challenger", description: "Je relève des défis", icon: Sword },
+  { value: "challenger", label: "Challenger", description: "Je rel\u00e8ve des d\u00e9fis", icon: Sword },
   { value: "mentor", label: "Mentor", description: "J'aide les autres", icon: Crown },
 ];
 
@@ -123,7 +122,7 @@ export default function Onboarding() {
       setOnboardingCompleted(true);
       toast({
         title: "Bienvenue sur STEM FLOW !",
-        description: "Ton profil est prêt. Explore le feed !",
+        description: "Ton profil est pr\u00eat. Explore le feed !",
       });
       setLocation("/feed");
     }
@@ -151,7 +150,7 @@ export default function Onboarding() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-center mb-2">Choisis ta langue</h2>
             <p className="text-muted-foreground text-center mb-6">
-              Dans quelle langue préfères-tu apprendre ?
+              Dans quelle langue pr\u00e9f\u00e8res-tu apprendre ?
             </p>
             <div className="grid grid-cols-1 gap-3">
               {languages.map((lang) => (
@@ -161,7 +160,7 @@ export default function Onboarding() {
                   data-testid={`button-language-${lang.value}`}
                   className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 hover-elevate ${
                     formData.preferredLanguage === lang.value
-                      ? "border-primary bg-primary/10"
+                      ? "border-accent bg-accent/10"
                       : "border-border bg-card"
                   }`}
                 >
@@ -170,7 +169,7 @@ export default function Onboarding() {
                   </div>
                   <span className="font-semibold text-lg">{lang.label}</span>
                   {formData.preferredLanguage === lang.value && (
-                    <Check className="ml-auto h-5 w-5 text-primary" />
+                    <Check className="ml-auto h-5 w-5 text-accent" />
                   )}
                 </button>
               ))}
@@ -181,9 +180,9 @@ export default function Onboarding() {
       case 1:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center mb-2">Ton niveau d'éducation</h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Ton niveau d'\u00e9ducation</h2>
             <p className="text-muted-foreground text-center mb-6">
-              Cela nous aide à adapter le contenu à ton niveau
+              Cela nous aide \u00e0 adapter le contenu \u00e0 ton niveau
             </p>
             <div className="grid grid-cols-1 gap-3">
               {educationLevels.map((edu) => (
@@ -193,7 +192,7 @@ export default function Onboarding() {
                   data-testid={`button-education-${edu.value}`}
                   className={`p-4 rounded-lg border-2 transition-all duration-200 text-left hover-elevate ${
                     formData.educationLevel === edu.value
-                      ? "border-primary bg-primary/10"
+                      ? "border-accent bg-accent/10"
                       : "border-border bg-card"
                   }`}
                 >
@@ -203,7 +202,7 @@ export default function Onboarding() {
                       <div className="text-sm text-muted-foreground">{edu.description}</div>
                     </div>
                     {formData.educationLevel === edu.value && (
-                      <Check className="h-5 w-5 text-primary" />
+                      <Check className="h-5 w-5 text-accent" />
                     )}
                   </div>
                 </button>
@@ -215,9 +214,9 @@ export default function Onboarding() {
       case 2:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center mb-2">Tes centres d'intérêt</h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Tes centres d'int\u00e9r\u00eat</h2>
             <p className="text-muted-foreground text-center mb-6">
-              Sélectionne au moins 1 domaine STEM qui te passionne
+              S\u00e9lectionne au moins 1 domaine STEM qui te passionne
             </p>
             <div className="grid grid-cols-2 gap-3">
               {stemInterests.map((interest) => {
@@ -230,7 +229,7 @@ export default function Onboarding() {
                     data-testid={`button-interest-${interest.value}`}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover-elevate ${
                       isSelected
-                        ? "border-primary bg-primary/10"
+                        ? "border-accent bg-accent/10"
                         : "border-border bg-card"
                     }`}
                   >
@@ -239,14 +238,14 @@ export default function Onboarding() {
                     </div>
                     <span className="font-semibold">{interest.label}</span>
                     {isSelected && (
-                      <Check className="h-4 w-4 text-primary" />
+                      <Check className="h-4 w-4 text-accent" />
                     )}
                   </button>
                 );
               })}
             </div>
             <p className="text-center text-sm text-muted-foreground">
-              {formData.interests?.length || 0} sélectionné(s)
+              {formData.interests?.length || 0} s\u00e9lectionn\u00e9(s)
             </p>
           </div>
         );
@@ -254,9 +253,9 @@ export default function Onboarding() {
       case 3:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center mb-2">Ton niveau de départ</h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Ton niveau de d\u00e9part</h2>
             <p className="text-muted-foreground text-center mb-6">
-              Comment te définirais-tu dans ton apprentissage ?
+              Comment te d\u00e9finirais-tu dans ton apprentissage ?
             </p>
             <div className="grid grid-cols-1 gap-3">
               {startingLevels.map((level) => {
@@ -269,7 +268,7 @@ export default function Onboarding() {
                     data-testid={`button-level-${level.value}`}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 hover-elevate ${
                       isSelected
-                        ? "border-primary bg-primary/10"
+                        ? "border-accent bg-accent/10"
                         : "border-border bg-card"
                     }`}
                   >
@@ -281,7 +280,7 @@ export default function Onboarding() {
                       <div className="text-sm text-muted-foreground">{level.description}</div>
                     </div>
                     {isSelected && (
-                      <Check className="ml-auto h-5 w-5 text-primary" />
+                      <Check className="ml-auto h-5 w-5 text-accent" />
                     )}
                   </button>
                 );
@@ -303,30 +302,38 @@ export default function Onboarding() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <StemFlowLogo size="lg" />
-          <StemFlowSlogan className="text-center mt-2" />
+          <StemFlowLogo size="lg" className="justify-center" />
+          <StemFlowSlogan className="text-center mt-2 text-muted-foreground" />
         </motion.div>
 
         <Card className="w-full max-w-md p-6">
           <div className="mb-6">
-            <div className="flex justify-between mb-2">
+            <div className="relative flex justify-between mb-4">
+              <div className="absolute top-5 left-5 right-5 h-0.5 bg-muted" />
+              <div
+                className="absolute top-5 left-5 h-0.5 bg-accent transition-all duration-500"
+                style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+              />
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 return (
-                  <div
-                    key={step.id}
-                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
-                      index <= currentStep
-                        ? "gradient-stem text-white"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
+                  <div key={step.id} className="relative z-10 flex flex-col items-center gap-1">
+                    <div
+                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
+                        index <= currentStep
+                          ? "gradient-stem text-white shadow-md"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className={`text-[10px] font-medium ${index <= currentStep ? "text-accent" : "text-muted-foreground"}`}>
+                      {step.title}
+                    </span>
                   </div>
                 );
               })}
             </div>
-            <Progress value={progress} className="h-2" />
           </div>
 
           <AnimatePresence mode="wait">
@@ -343,7 +350,7 @@ export default function Onboarding() {
         </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/90 backdrop-blur-xl border-t">
         <div className="max-w-md mx-auto flex gap-3">
           {currentStep > 0 && (
             <Button

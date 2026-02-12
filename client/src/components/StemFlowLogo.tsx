@@ -1,12 +1,13 @@
-import stemFlowLogo from "@assets/a7f9fef0-ccda-4856-80a4-17e64300d515_1769637656263.png";
+import stemFlowLogo from "@assets/WhatsApp_Image_2026-02-12_at_21.06.10_1770926836861.jpeg";
 
 interface StemFlowLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   showText?: boolean;
   className?: string;
+  variant?: "default" | "light";
 }
 
-export function StemFlowLogo({ size = "md", showText = true, className = "" }: StemFlowLogoProps) {
+export function StemFlowLogo({ size = "md", showText = true, className = "", variant = "default" }: StemFlowLogoProps) {
   const sizeClasses = {
     sm: "h-8",
     md: "h-10",
@@ -26,7 +27,7 @@ export function StemFlowLogo({ size = "md", showText = true, className = "" }: S
       <img 
         src={stemFlowLogo} 
         alt="STEMflow" 
-        className={`${showText ? sizeClasses[size] : iconOnlySizes[size]} w-auto object-contain`}
+        className={`${showText ? sizeClasses[size] : iconOnlySizes[size]} w-auto object-contain ${variant === "light" ? "brightness-[10] contrast-50" : ""}`}
         data-testid="logo-stemflow"
       />
     </div>
@@ -35,7 +36,7 @@ export function StemFlowLogo({ size = "md", showText = true, className = "" }: S
 
 export function StemFlowSlogan({ className = "" }: { className?: string }) {
   return (
-    <p className={`text-muted-foreground font-medium ${className}`}>
+    <p className={`font-medium italic tracking-wide ${className}`}>
       Scroll. Learn. Level Up.
     </p>
   );

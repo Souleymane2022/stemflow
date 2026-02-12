@@ -55,7 +55,7 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
@@ -67,13 +67,13 @@ export default function Leaderboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[#F5B700]">
-              <Flame className="h-4 w-4" />
-              <span className="text-sm font-bold">{streak}</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F5B700]/10">
+              <Flame className="h-3.5 w-3.5 text-[#F5B700]" />
+              <span className="text-xs font-bold text-[#F5B700]">{streak}</span>
             </div>
-            <div className="flex items-center gap-1 text-accent">
-              <Zap className="h-4 w-4" />
-              <span className="text-sm font-bold">{xp}</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/10">
+              <Zap className="h-3.5 w-3.5 text-accent" />
+              <span className="text-xs font-bold text-accent">{xp}</span>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function Leaderboard() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t">
         <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
           <Button variant="ghost" className="flex-col gap-1 h-auto py-2" onClick={() => setLocation("/feed")} data-testid="nav-feed">
             <Home className="h-5 w-5" />
