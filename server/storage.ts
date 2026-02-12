@@ -264,7 +264,7 @@ export class MemStorage implements IStorage {
 
   async createQuizQuestion(question: InsertQuizQuestion): Promise<QuizQuestion> {
     const id = randomUUID();
-    const newQuestion: QuizQuestion = { ...question, id };
+    const newQuestion: QuizQuestion = { ...question, id, explanation: question.explanation ?? null };
     this.quizQuestions.set(id, newQuestion);
     return newQuestion;
   }

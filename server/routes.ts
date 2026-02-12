@@ -108,7 +108,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
       const { questions, ...contentData } = validation.data;
-      const content = await storage.createContent(contentData);
+      const content = await storage.createContent({ ...contentData, createdAt: new Date().toISOString() });
 
       if (contentData.contentType === "quiz" && questions && questions.length > 0) {
         const quizQuestions = questions.map((q, i) => ({
