@@ -15,6 +15,9 @@ import RoomDetail from "@/pages/RoomDetail";
 import Missions from "@/pages/Missions";
 import Profile from "@/pages/Profile";
 import Home from "@/pages/Home";
+import CreateContent from "@/pages/CreateContent";
+import QuizPlayer from "@/pages/QuizPlayer";
+import Leaderboard from "@/pages/Leaderboard";
 
 function Router() {
   const { onboardingCompleted } = useUserState();
@@ -37,6 +40,9 @@ function Router() {
       <Route path="/rooms/:id" component={RoomDetail} />
       <Route path="/missions" component={Missions} />
       <Route path="/profile" component={Profile} />
+      <Route path="/create/:type" component={CreateContent} />
+      <Route path="/quiz/:id" component={QuizPlayer} />
+      <Route path="/leaderboard" component={Leaderboard} />
       <Route component={NotFound} />
     </Switch>
   );

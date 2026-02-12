@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,9 +59,10 @@ export function ContentCard({
   onSave,
   onJoinRoom,
 }: ContentCardProps) {
+  const [, setLocation] = useLocation();
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(content.likes);
+  const [likeCount, setLikeCount] = useState(content.likes ?? 0);
 
   const ContentIcon = contentTypeIcons[content.contentType];
   const gradientColor = categoryColors[content.category];
@@ -146,12 +148,19 @@ export function ContentCard({
           )}
 
           {content.contentType === "quiz" && (
-            <div className="p-6 bg-gradient-to-br from-[#F5B700] to-[#00C896] min-h-[200px] flex flex-col items-center justify-center gap-4">
+            <div
+              className="p-6 bg-gradient-to-br from-[#F5B700] to-[#00C896] min-h-[200px] flex flex-col items-center justify-center gap-4 cursor-pointer"
+              onClick={() => setLocation(`/quiz/${content.id}`)}
+            >
               <HelpCircle className="h-12 w-12 text-white" />
               <p className="text-white text-lg font-semibold text-center">
                 Quiz disponible
               </p>
-              <Button variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Button
+                variant="secondary"
+                className="bg-white/20 text-white border-white/30"
+                data-testid={`button-play-quiz-${content.id}`}
+              >
                 Commencer le quiz
               </Button>
             </div>
@@ -171,9 +180,17 @@ export function ContentCard({
         <div className="p-4">
           <h3 className="font-bold text-lg mb-1 line-clamp-2">{content.title}</h3>
           {content.description && (
-            <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+            <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
               {content.description}
             </p>
+          )}
+
+          {content.tags && content.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {content.tags.map((tag) => (
+                <span key={tag} className="text-xs text-accent font-medium">{tag}</span>
+              ))}
+            </div>
           )}
 
           {/* Room Badge */}
@@ -214,7 +231,7 @@ export function ContentCard({
                 data-testid={`button-comment-${content.id}`}
               >
                 <MessageCircle className="h-5 w-5" />
-                <span className="ml-1 text-sm">{content.comments}</span>
+                <span className="ml-1 text-sm">{content.comments ?? 0}</span>
               </Button>
               <Button
                 variant="ghost"
@@ -223,7 +240,7 @@ export function ContentCard({
                 data-testid={`button-share-${content.id}`}
               >
                 <Share2 className="h-5 w-5" />
-                <span className="ml-1 text-sm">{content.shares}</span>
+                <span className="ml-1 text-sm">{content.shares ?? 0}</span>
               </Button>
             </div>
             <Button

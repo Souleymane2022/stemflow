@@ -8,12 +8,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
 import {
-  Home,
-  Users,
-  Target,
-  User,
   Lightbulb,
   Cpu,
   Wrench,
@@ -38,14 +35,6 @@ export default function Feed() {
 
   const { data: contents, isLoading } = useQuery<Content[]>({
     queryKey: ["/api/feed", selectedCategory],
-    queryFn: async () => {
-      const url = selectedCategory === "all" 
-        ? "/api/feed" 
-        : `/api/feed?category=${selectedCategory}`;
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch feed");
-      return res.json();
-    },
   });
 
   const filteredContents = contents?.filter(
@@ -138,47 +127,7 @@ export default function Feed() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t">
-        <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
-          <Button
-            variant="ghost"
-            className="flex-col gap-1 h-auto py-2 text-primary"
-            onClick={() => setLocation("/feed")}
-            data-testid="nav-feed"
-          >
-            <Home className="h-5 w-5" />
-            <span className="text-xs">Feed</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-col gap-1 h-auto py-2"
-            onClick={() => setLocation("/rooms")}
-            data-testid="nav-rooms"
-          >
-            <Users className="h-5 w-5" />
-            <span className="text-xs">Salons</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-col gap-1 h-auto py-2"
-            onClick={() => setLocation("/missions")}
-            data-testid="nav-missions"
-          >
-            <Target className="h-5 w-5" />
-            <span className="text-xs">Missions</span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-col gap-1 h-auto py-2"
-            onClick={() => setLocation("/profile")}
-            data-testid="nav-profile"
-          >
-            <User className="h-5 w-5" />
-            <span className="text-xs">Profil</span>
-          </Button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }
