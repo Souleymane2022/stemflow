@@ -157,6 +157,16 @@ Custom CSS gradient classes for the African Innovation theme:
 - **Validation**: Zod schemas
 - **Icons**: Lucide React
 
+## Authentication & Security
+
+- **Registration**: Unique email/username enforcement (409 on duplicates)
+- **Account Activation**: 6-digit code generated on registration, must be entered to activate account
+- **Login**: Blocked for inactive accounts (returns 403 with needsActivation flag)
+- **Password Security**: bcrypt hashing (12 rounds)
+- **Sessions**: express-session with httpOnly cookies (7-day expiry)
+- **Auth Routes**: POST /api/auth/register, /api/auth/activate, /api/auth/login, /api/auth/logout, GET /api/auth/me
+- **Middleware**: requireAuth on all /api/* except auth routes
+
 ## Running the App
 
 The application runs with `npm run dev` which starts:

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { registerSchema, loginSchema } from "@shared/schema";
+import { registerSchema, loginSchema, activationSchema } from "@shared/schema";
 import {
   analyzeContent,
   analyzeDiscussionQuality,
@@ -111,12 +111,32 @@ export async function registerRoutes(
       const hashedPassword = await bcrypt.hash(password, 12);
       const user = await storage.createUser({ username, email, password: hashedPassword });
 
-      req.session.userId = user.id;
-
-      const { password: _, ...safeUser } = user;
-      res.status(201).json(safeUser);
+      const { password: _, activationCode, ...safeUser } = user;
+      res.status(201).json({ ...safeUser, activationCode, needsActivation: true });
     } catch (error) {
       res.status(500).json({ error: "Erreur lors de l'inscription" });
+    }
+  });
+
+  app.post("/api/auth/activate", async (req, res) => {
+    try {
+      const validation = activationSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Données invalides", details: validation.error.errors });
+      }
+
+      const { email, code } = validation.data;
+      const user = await storage.activateUser(email, code);
+      if (!user) {
+        return res.status(400).json({ error: "Code d'activation invalide" });
+      }
+
+      req.session.userId = user.id;
+
+      const { password: _, activationCode: __, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      res.status(500).json({ error: "Erreur lors de l'activation" });
     }
   });
 
@@ -138,9 +158,13 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Email ou mot de passe incorrect" });
       }
 
+      if (!user.isActive) {
+        return res.status(403).json({ error: "Compte non activé. Veuillez entrer votre code d'activation.", needsActivation: true, email: user.email });
+      }
+
       req.session.userId = user.id;
 
-      const { password: _, ...safeUser } = user;
+      const { password: _, activationCode: __, ...safeUser } = user;
       res.json(safeUser);
     } catch (error) {
       res.status(500).json({ error: "Erreur lors de la connexion" });
@@ -168,7 +192,7 @@ export async function registerRoutes(
       return res.status(401).json({ error: "Utilisateur non trouvé" });
     }
 
-    const { password: _, ...safeUser } = user;
+    const { password: _, activationCode: __, ...safeUser } = user;
     res.json(safeUser);
   });
 

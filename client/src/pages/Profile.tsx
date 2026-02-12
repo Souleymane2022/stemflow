@@ -361,60 +361,19 @@ export default function Profile() {
             <Users className="h-4 w-4 text-primary" />
             Contacter l'équipe
           </h3>
-          <div className="space-y-2">
-            <a
-              href="mailto:contact.equipe.learnxscience@gmail.com"
-              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
-              data-testid="link-contact-team"
-            >
-              <div className="p-2 rounded-full gradient-stem">
-                <Mail className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">STEM FLOW Team</p>
-                <p className="text-xs text-muted-foreground">contact.equipe.learnxscience@gmail.com</p>
-              </div>
-            </a>
-            <a
-              href="mailto:alidossou123456789@gmail.com"
-              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
-              data-testid="link-contact-ali"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs gradient-energy text-white">AL</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-sm">Ali Dossou</p>
-                <p className="text-xs text-muted-foreground">alidossou123456789@gmail.com</p>
-              </div>
-            </a>
-            <a
-              href="mailto:souleymanemahamatsaleh2000@gmail.com"
-              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
-              data-testid="link-contact-souleymane"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs gradient-innovation text-white">SO</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-sm">Souleymane</p>
-                <p className="text-xs text-muted-foreground">souleymanemahamatsaleh2000@gmail.com</p>
-              </div>
-            </a>
-            <a
-              href="mailto:ciramamys@gmail.com"
-              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover-elevate"
-              data-testid="link-contact-cira"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs gradient-african text-white">CI</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-sm">Cira</p>
-                <p className="text-xs text-muted-foreground">ciramamys@gmail.com</p>
-              </div>
-            </a>
-          </div>
+          <a
+            href="mailto:contact.equipe.learnxscience@gmail.com"
+            className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover-elevate"
+            data-testid="link-contact-team"
+          >
+            <div className="p-2 rounded-full gradient-stem">
+              <Mail className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">STEM FLOW Team</p>
+              <p className="text-xs text-muted-foreground">contact.equipe.learnxscience@gmail.com</p>
+            </div>
+          </a>
         </Card>
 
         <Button

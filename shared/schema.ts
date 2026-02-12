@@ -8,6 +8,8 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  isActive: boolean("is_active").default(false),
+  activationCode: text("activation_code"),
   preferredLanguage: text("preferred_language").default("fr"),
   educationLevel: text("education_level"),
   interests: text("interests").array(),
@@ -33,6 +35,11 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email("Email invalide"),
   password: z.string().min(1, "Mot de passe requis"),
+});
+
+export const activationSchema = z.object({
+  email: z.string().email("Email invalide"),
+  code: z.string().length(6, "Le code doit contenir 6 chiffres"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

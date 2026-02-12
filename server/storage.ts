@@ -12,6 +12,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  activateUser(email: string, code: string): Promise<User | undefined>;
   updateUserProfile(id: string, profile: Partial<User>): Promise<User | undefined>;
 
   getAllContent(): Promise<Content[]>;
@@ -148,11 +149,11 @@ export class MemStorage implements IStorage {
     missions.forEach((mission) => this.missions.set(mission.id, mission));
 
     const leaderboardUsers: User[] = [
-      { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
-      { id: "lb-user-2", username: "Alan Turing", email: "alan@stemflow.com", password: "", xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"], createdAt: new Date().toISOString() },
-      { id: "lb-user-3", username: "Ada Lovelace", email: "ada@stemflow.com", password: "", xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"], createdAt: new Date().toISOString() },
-      { id: "lb-user-4", username: "Pierre Fermat", email: "pierre@stemflow.com", password: "", xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"], createdAt: new Date().toISOString() },
-      { id: "lb-user-5", username: "Nikola Tesla", email: "nikola@stemflow.com", password: "", xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"], createdAt: new Date().toISOString() },
+      { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", isActive: true, activationCode: null, xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
+      { id: "lb-user-2", username: "Alan Turing", email: "alan@stemflow.com", password: "", isActive: true, activationCode: null, xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-3", username: "Ada Lovelace", email: "ada@stemflow.com", password: "", isActive: true, activationCode: null, xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"], createdAt: new Date().toISOString() },
+      { id: "lb-user-4", username: "Pierre Fermat", email: "pierre@stemflow.com", password: "", isActive: true, activationCode: null, xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-5", username: "Nikola Tesla", email: "nikola@stemflow.com", password: "", isActive: true, activationCode: null, xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"], createdAt: new Date().toISOString() },
     ];
     leaderboardUsers.forEach((u) => this.users.set(u.id, u));
 
@@ -178,10 +179,13 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
+    const activationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const user: User = {
       ...insertUser,
       id,
       email: insertUser.email.toLowerCase(),
+      isActive: false,
+      activationCode,
       preferredLanguage: "fr",
       educationLevel: null,
       interests: null,
@@ -193,6 +197,16 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async activateUser(email: string, code: string): Promise<User | undefined> {
+    const user = Array.from(this.users.values()).find(
+      (u) => u.email === email.toLowerCase()
+    );
+    if (!user || user.activationCode !== code) return undefined;
+    const activated = { ...user, isActive: true, activationCode: null };
+    this.users.set(user.id, activated);
+    return activated;
   }
 
   async updateUserProfile(id: string, profile: Partial<User>): Promise<User | undefined> {
