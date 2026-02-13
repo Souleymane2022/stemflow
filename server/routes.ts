@@ -252,6 +252,13 @@ export async function registerRoutes(
         await storage.createQuizQuestions(quizQuestions);
       }
 
+      await storage.createActivity({
+        userId: contentData.authorId,
+        username: contentData.authorName,
+        activityType: "content_created",
+        description: `a publi\u00e9 un nouveau contenu : ${content.title}`,
+      });
+
       res.json(content);
     } catch (error) {
       res.status(500).json({ error: "Failed to create content" });
@@ -355,6 +362,17 @@ export async function registerRoutes(
         score,
         totalQuestions: questions.length,
       });
+
+      const quizUser = await storage.getUser(validation.data.userId);
+      const quizContent = await storage.getContent(req.params.id);
+      if (quizUser) {
+        await storage.createActivity({
+          userId: quizUser.id,
+          username: quizUser.username,
+          activityType: "quiz_completed",
+          description: `a compl\u00e9t\u00e9 un quiz : ${quizContent?.title || "Quiz"} (${score}/${questions.length})`,
+        });
+      }
 
       res.json({
         ...attempt,
@@ -470,6 +488,16 @@ export async function registerRoutes(
       }
       const { userId, role } = validation.data;
       const member = await storage.joinRoom(req.params.id, userId, role);
+      const joinUser = await storage.getUser(userId);
+      const joinRoom = await storage.getRoom(req.params.id);
+      if (joinUser && joinRoom) {
+        await storage.createActivity({
+          userId: joinUser.id,
+          username: joinUser.username,
+          activityType: "room_joined",
+          description: `a rejoint le salon "${joinRoom.name}"`,
+        });
+      }
       res.json(member);
     } catch (error) {
       res.status(500).json({ error: "Failed to join room" });
@@ -514,16 +542,128 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/users/search", requireAuth, async (req, res) => {
+    try {
+      const q = (req.query.q as string) || "";
+      if (!q.trim()) {
+        return res.json([]);
+      }
+      const users = await storage.searchUsers(q);
+      const safeUsers = users.map(({ password: _, activationCode: __, email: ___, ...u }) => u);
+      res.json(safeUsers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search users" });
+    }
+  });
+
+  app.get("/api/activity-feed", requireAuth, async (req, res) => {
+    try {
+      const following = await storage.getFollowing(req.session.userId!);
+      const activities = await storage.getActivitiesFeed(following);
+      res.json(activities);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch activity feed" });
+    }
+  });
+
   app.get("/api/users/:id", requireAuth, async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      const { password: _, ...safeUser } = user;
-      res.json(safeUser);
+      const { password: _, activationCode: __, ...safeUser } = user;
+      const counts = await storage.getFollowCounts(req.params.id);
+      res.json({ ...safeUser, ...counts });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  app.post("/api/users/:id/follow", requireAuth, async (req, res) => {
+    try {
+      const followerId = req.session.userId!;
+      const followingId = req.params.id;
+      if (followerId === followingId) {
+        return res.status(400).json({ error: "Impossible de se suivre soi-meme" });
+      }
+      await storage.followUser(followerId, followingId);
+      const follower = await storage.getUser(followerId);
+      const target = await storage.getUser(followingId);
+      if (follower && target) {
+        await storage.createActivity({
+          userId: followerId,
+          username: follower.username,
+          activityType: "room_joined",
+          description: `suit maintenant ${target.username}`,
+        });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to follow user" });
+    }
+  });
+
+  app.delete("/api/users/:id/follow", requireAuth, async (req, res) => {
+    try {
+      await storage.unfollowUser(req.session.userId!, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to unfollow user" });
+    }
+  });
+
+  app.get("/api/users/:id/followers", requireAuth, async (req, res) => {
+    try {
+      const followerIds = await storage.getFollowers(req.params.id);
+      const counts = await storage.getFollowCounts(req.params.id);
+      const profiles = await Promise.all(
+        followerIds.map(async (id) => {
+          const user = await storage.getUser(id);
+          if (!user) return null;
+          const { password: _, activationCode: __, email: ___, ...safe } = user;
+          return safe;
+        })
+      );
+      res.json({ count: counts.followers, users: profiles.filter(Boolean) });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch followers" });
+    }
+  });
+
+  app.get("/api/users/:id/following", requireAuth, async (req, res) => {
+    try {
+      const followingIds = await storage.getFollowing(req.params.id);
+      const counts = await storage.getFollowCounts(req.params.id);
+      const profiles = await Promise.all(
+        followingIds.map(async (id) => {
+          const user = await storage.getUser(id);
+          if (!user) return null;
+          const { password: _, activationCode: __, email: ___, ...safe } = user;
+          return safe;
+        })
+      );
+      res.json({ count: counts.following, users: profiles.filter(Boolean) });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch following" });
+    }
+  });
+
+  app.get("/api/users/:id/is-following", requireAuth, async (req, res) => {
+    try {
+      const isFollowing = await storage.isFollowing(req.session.userId!, req.params.id);
+      res.json({ isFollowing });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check follow status" });
+    }
+  });
+
+  app.get("/api/users/:id/activities", requireAuth, async (req, res) => {
+    try {
+      const activities = await storage.getActivitiesByUser(req.params.id);
+      res.json(activities);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch activities" });
     }
   });
 

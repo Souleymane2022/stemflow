@@ -248,3 +248,26 @@ export const videoEngagementSchema = z.object({
 });
 
 export type VideoEngagement = z.infer<typeof videoEngagementSchema>;
+
+export const activityTypes = ["content_created", "quiz_completed", "room_joined", "badge_earned", "level_up", "mission_completed"] as const;
+
+export const followSchema = z.object({
+  id: z.string(),
+  followerId: z.string(),
+  followingId: z.string(),
+  createdAt: z.string(),
+});
+
+export type Follow = z.infer<typeof followSchema>;
+
+export const activitySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  username: z.string(),
+  activityType: z.enum(activityTypes),
+  description: z.string(),
+  metadata: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+
+export type Activity = z.infer<typeof activitySchema>;

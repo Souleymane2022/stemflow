@@ -4,7 +4,8 @@ import type {
   Room, InsertRoom, Mission, InsertMission,
   RoomMember, EngagementStats, VideoEngagement,
   QuizQuestion, InsertQuizQuestion, QuizAttempt,
-  Comment, InsertComment, Badge, UserBadge, LeaderboardEntry
+  Comment, InsertComment, Badge, UserBadge, LeaderboardEntry,
+  Follow, Activity
 } from "@shared/schema";
 
 export interface IStorage {
@@ -59,6 +60,17 @@ export interface IStorage {
 
   getEngagementStats(userId: string): Promise<EngagementStats | undefined>;
   trackVideoEngagement(engagement: Omit<VideoEngagement, 'id'>): Promise<VideoEngagement>;
+
+  followUser(followerId: string, followingId: string): Promise<void>;
+  unfollowUser(followerId: string, followingId: string): Promise<void>;
+  getFollowers(userId: string): Promise<string[]>;
+  getFollowing(userId: string): Promise<string[]>;
+  isFollowing(followerId: string, followingId: string): Promise<boolean>;
+  getFollowCounts(userId: string): Promise<{followers: number, following: number}>;
+  createActivity(activity: {userId: string, username: string, activityType: string, description: string, metadata?: string}): Promise<Activity>;
+  getActivitiesByUser(userId: string): Promise<Activity[]>;
+  getActivitiesFeed(userIds: string[]): Promise<Activity[]>;
+  searchUsers(query: string): Promise<User[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -75,6 +87,8 @@ export class MemStorage implements IStorage {
   private badges: Map<string, Badge>;
   private userBadges: Map<string, UserBadge>;
   private contentLikes: Map<string, Set<string>>;
+  private follows: Map<string, Follow>;
+  private activities: Map<string, Activity>;
 
   constructor() {
     this.users = new Map();
@@ -90,6 +104,8 @@ export class MemStorage implements IStorage {
     this.badges = new Map();
     this.userBadges = new Map();
     this.contentLikes = new Map();
+    this.follows = new Map();
+    this.activities = new Map();
 
     this.seedData();
   }
@@ -163,6 +179,20 @@ export class MemStorage implements IStorage {
       { id: "comment-3", contentId: "content-1", userId: "lb-user-3", authorName: "Ada Lovelace", text: "Très bien expliqué, merci pour ce partage !", likes: 2, createdAt: new Date(Date.now() - 1800000).toISOString() },
     ];
     seedComments.forEach((c) => this.comments.set(c.id, c));
+
+    const seedActivities: Activity[] = [
+      { id: "act-1", userId: "lb-user-1", username: "Dr. Marie Curie", activityType: "content_created", description: "a publie un nouveau contenu : Comment fonctionne un trou noir ?", metadata: null, createdAt: new Date(Date.now() - 1800000).toISOString() },
+      { id: "act-2", userId: "lb-user-2", username: "Alan Turing", activityType: "quiz_completed", description: "a complete un quiz en Technologie avec 95%", metadata: null, createdAt: new Date(Date.now() - 3600000).toISOString() },
+      { id: "act-3", userId: "lb-user-3", username: "Ada Lovelace", activityType: "room_joined", description: "a rejoint le salon Robotique Club", metadata: null, createdAt: new Date(Date.now() - 7200000).toISOString() },
+      { id: "act-4", userId: "lb-user-4", username: "Pierre Fermat", activityType: "badge_earned", description: "a obtenu le badge Expert Quiz", metadata: null, createdAt: new Date(Date.now() - 10800000).toISOString() },
+      { id: "act-5", userId: "lb-user-5", username: "Nikola Tesla", activityType: "level_up", description: "est passe au niveau Explorateur", metadata: null, createdAt: new Date(Date.now() - 14400000).toISOString() },
+      { id: "act-6", userId: "lb-user-1", username: "Dr. Marie Curie", activityType: "mission_completed", description: "a complete la mission Explorateur du jour", metadata: null, createdAt: new Date(Date.now() - 18000000).toISOString() },
+      { id: "act-7", userId: "lb-user-2", username: "Alan Turing", activityType: "content_created", description: "a publie un nouveau contenu : L'intelligence artificielle expliquee simplement", metadata: null, createdAt: new Date(Date.now() - 21600000).toISOString() },
+      { id: "act-8", userId: "lb-user-3", username: "Ada Lovelace", activityType: "quiz_completed", description: "a complete un quiz en Mathematiques avec 100%", metadata: null, createdAt: new Date(Date.now() - 25200000).toISOString() },
+      { id: "act-9", userId: "lb-user-4", username: "Pierre Fermat", activityType: "content_created", description: "a publie un nouveau contenu : Le theoreme de Pythagore dans la vraie vie", metadata: null, createdAt: new Date(Date.now() - 28800000).toISOString() },
+      { id: "act-10", userId: "lb-user-5", username: "Nikola Tesla", activityType: "room_joined", description: "a rejoint le salon Ingenieurs en herbe", metadata: null, createdAt: new Date(Date.now() - 32400000).toISOString() },
+    ];
+    seedActivities.forEach((a) => this.activities.set(a.id, a));
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -510,6 +540,84 @@ export class MemStorage implements IStorage {
     const newEngagement: VideoEngagement = { ...engagement, id };
     this.videoEngagements.set(id, newEngagement);
     return newEngagement;
+  }
+
+  async followUser(followerId: string, followingId: string): Promise<void> {
+    const existing = Array.from(this.follows.values()).find(
+      (f) => f.followerId === followerId && f.followingId === followingId
+    );
+    if (existing) return;
+    const id = randomUUID();
+    const follow: Follow = { id, followerId, followingId, createdAt: new Date().toISOString() };
+    this.follows.set(id, follow);
+  }
+
+  async unfollowUser(followerId: string, followingId: string): Promise<void> {
+    const entry = Array.from(this.follows.entries()).find(
+      ([, f]) => f.followerId === followerId && f.followingId === followingId
+    );
+    if (entry) {
+      this.follows.delete(entry[0]);
+    }
+  }
+
+  async getFollowers(userId: string): Promise<string[]> {
+    return Array.from(this.follows.values())
+      .filter((f) => f.followingId === userId)
+      .map((f) => f.followerId);
+  }
+
+  async getFollowing(userId: string): Promise<string[]> {
+    return Array.from(this.follows.values())
+      .filter((f) => f.followerId === userId)
+      .map((f) => f.followingId);
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    return Array.from(this.follows.values()).some(
+      (f) => f.followerId === followerId && f.followingId === followingId
+    );
+  }
+
+  async getFollowCounts(userId: string): Promise<{followers: number, following: number}> {
+    const followers = Array.from(this.follows.values()).filter((f) => f.followingId === userId).length;
+    const following = Array.from(this.follows.values()).filter((f) => f.followerId === userId).length;
+    return { followers, following };
+  }
+
+  async createActivity(activity: {userId: string, username: string, activityType: string, description: string, metadata?: string}): Promise<Activity> {
+    const id = randomUUID();
+    const newActivity: Activity = {
+      id,
+      userId: activity.userId,
+      username: activity.username,
+      activityType: activity.activityType as any,
+      description: activity.description,
+      metadata: activity.metadata || null,
+      createdAt: new Date().toISOString(),
+    };
+    this.activities.set(id, newActivity);
+    return newActivity;
+  }
+
+  async getActivitiesByUser(userId: string): Promise<Activity[]> {
+    return Array.from(this.activities.values())
+      .filter((a) => a.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getActivitiesFeed(userIds: string[]): Promise<Activity[]> {
+    return Array.from(this.activities.values())
+      .filter((a) => userIds.includes(a.userId))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 50);
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    const lowerQuery = query.toLowerCase();
+    return Array.from(this.users.values())
+      .filter((u) => u.username.toLowerCase().includes(lowerQuery))
+      .slice(0, 20);
   }
 }
 

@@ -22,6 +22,8 @@ import Leaderboard from "@/pages/Leaderboard";
 import AIAssistant from "@/pages/AIAssistant";
 import Auth from "@/pages/Auth";
 import Achievements from "@/pages/Achievements";
+import Community from "@/pages/Community";
+import UserProfile from "@/pages/UserProfile";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, setUser, logout } = useUserState();
@@ -86,6 +88,8 @@ function Router() {
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/assistant" component={AIAssistant} />
+      <Route path="/community" component={Community} />
+      <Route path="/user/:id" component={UserProfile} />
       <Route component={NotFound} />
     </Switch>
   );
