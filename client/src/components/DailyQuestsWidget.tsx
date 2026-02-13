@@ -52,7 +52,7 @@ export function DailyQuestsWidget() {
       <div className="flex items-center justify-between gap-3 mb-3">
         <h3 className="font-semibold flex items-center gap-2">
           <Gift className="h-4 w-4 text-[#F5B700]" />
-          Qu\u00eates du jour
+          Quêtes du jour
         </h3>
         <div className="flex items-center gap-2">
           {xpBoostActive && (
@@ -71,7 +71,7 @@ export function DailyQuestsWidget() {
         <div className="mb-3 p-2.5 rounded-lg bg-accent/10 border border-accent/20 text-center">
           <p className="text-sm font-medium text-accent flex items-center justify-center gap-1.5">
             <Sparkles className="h-4 w-4" />
-            Toutes les qu\u00eates compl\u00e9t\u00e9es ! Bonus +50 XP
+            Toutes les quêtes complétées ! Bonus +50 XP
           </p>
         </div>
       )}

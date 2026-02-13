@@ -37,6 +37,105 @@ import {
 import { SiFacebook, SiWhatsapp, SiLinkedin } from "react-icons/si";
 import type { Content, Comment } from "@shared/schema";
 
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function isDirectVideo(url: string): boolean {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+}
+
+function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientColor: string; contentId: string }) {
+  const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState(false);
+  const youtubeId = getYouTubeId(url);
+
+  if (youtubeId) {
+    return (
+      <div className="aspect-video bg-black relative overflow-hidden" data-testid={`video-player-${contentId}`}>
+        {!playing ? (
+          <div
+            className="absolute inset-0 cursor-pointer group"
+            onClick={() => setPlaying(true)}
+          >
+            <img
+              src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+              alt="Video thumbnail"
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-20`} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="p-4 rounded-full bg-white/90 dark:bg-black/80 group-hover:scale-110 transition-transform">
+                <Play className="h-8 w-8 text-primary fill-primary" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Video"
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (isDirectVideo(url)) {
+    return (
+      <div className="aspect-video bg-black relative overflow-hidden" data-testid={`video-player-${contentId}`}>
+        <video
+          src={url}
+          controls
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-contain"
+          onError={() => setError(true)}
+        >
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
+            <Play className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">Impossible de charger la vidéo</p>
+            <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-accent mt-1 underline">
+              Ouvrir le lien
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="aspect-video bg-muted relative overflow-hidden" data-testid={`video-player-${contentId}`}>
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-20`} />
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute inset-0 flex flex-col items-center justify-center gap-2 group"
+      >
+        <div className="p-4 rounded-full bg-white/90 dark:bg-black/80 group-hover:scale-110 transition-transform">
+          <Play className="h-8 w-8 text-primary fill-primary" />
+        </div>
+        <span className="text-sm text-foreground/80 font-medium">Regarder la vidéo</span>
+      </a>
+    </div>
+  );
+}
+
 interface ContentCardProps {
   content: Content & { userLiked?: boolean };
   onJoinRoom?: () => void;
@@ -153,7 +252,7 @@ export function ContentCard({
         celebrateMissionComplete();
         addWeeklyXp(completed.xpReward);
         addXp(completed.xpReward);
-        toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+        toast({ title: "Quête complétée !", description: `+${completed.xpReward} XP - ${completed.title}` });
       }
     }
   };
@@ -171,7 +270,7 @@ export function ContentCard({
         celebrateMissionComplete();
         addWeeklyXp(completed.xpReward);
         addXp(completed.xpReward);
-        toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+        toast({ title: "Quête complétée !", description: `+${completed.xpReward} XP - ${completed.title}` });
       }
     }
   };
@@ -187,7 +286,7 @@ export function ContentCard({
       celebrateMissionComplete();
       addWeeklyXp(completed.xpReward);
       addXp(completed.xpReward);
-      toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+      toast({ title: "Quête complétée !", description: `+${completed.xpReward} XP - ${completed.title}` });
     }
 
     if (!platform && navigator.share) {
@@ -275,17 +374,11 @@ export function ContentCard({
 
         <div className="relative">
           {content.contentType === "video" && content.videoUrl && (
-            <div className="aspect-video bg-muted relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-20`} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="p-4 rounded-full bg-white/90 dark:bg-black/80">
-                  <Play className="h-8 w-8 text-primary fill-primary" />
-                </div>
-              </div>
-              <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                3:45
-              </div>
-            </div>
+            <VideoPlayer
+              url={content.videoUrl}
+              gradientColor={gradientColor}
+              contentId={content.id}
+            />
           )}
 
           {content.contentType === "image_post" && content.imageUrl && (

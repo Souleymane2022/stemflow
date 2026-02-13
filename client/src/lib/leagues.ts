@@ -18,7 +18,7 @@ export const LEAGUES: League[] = [
   { id: "sapphire", name: "Saphir", tier: 4, color: "#0F52BA", gradient: "from-blue-600 to-blue-400", icon: "gem", minXpWeekly: 200 },
   { id: "ruby", name: "Rubis", tier: 5, color: "#E0115F", gradient: "from-rose-600 to-rose-400", icon: "gem", minXpWeekly: 350 },
   { id: "emerald", name: "Emeraude", tier: 6, color: "#50C878", gradient: "from-emerald-600 to-emerald-400", icon: "gem", minXpWeekly: 500 },
-  { id: "amethyst", name: "Am\u00e9thyste", tier: 7, color: "#9966CC", gradient: "from-purple-600 to-purple-400", icon: "crown", minXpWeekly: 750 },
+  { id: "amethyst", name: "Améthyste", tier: 7, color: "#9966CC", gradient: "from-purple-600 to-purple-400", icon: "crown", minXpWeekly: 750 },
   { id: "pearl", name: "Perle", tier: 8, color: "#FDEEF4", gradient: "from-pink-300 to-white", icon: "crown", minXpWeekly: 1000 },
   { id: "obsidian", name: "Obsidienne", tier: 9, color: "#3D3635", gradient: "from-gray-800 to-gray-600", icon: "crown", minXpWeekly: 1500 },
   { id: "diamond", name: "Diamant", tier: 10, color: "#B9F2FF", gradient: "from-cyan-300 to-blue-200", icon: "diamond", minXpWeekly: 2000 },

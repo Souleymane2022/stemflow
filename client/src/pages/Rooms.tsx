@@ -53,7 +53,7 @@ export default function Rooms() {
         <div className="flex items-center justify-between gap-3 p-4">
           <div>
             <h1 className="text-xl font-bold">Salons</h1>
-            <p className="text-sm text-muted-foreground">Rejoins une communaut\u00e9</p>
+            <p className="text-sm text-muted-foreground">Rejoins une communauté</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F5B700]/10">

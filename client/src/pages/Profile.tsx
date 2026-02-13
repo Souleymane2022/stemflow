@@ -57,9 +57,9 @@ const interestIcons = {
 };
 
 const educationLabels = {
-  college: "Coll\u00e8ge",
-  lycee: "Lyc\u00e9e",
-  universite: "Universit\u00e9",
+  college: "Collège",
+  lycee: "Lycée",
+  universite: "Université",
   autodidacte: "Autodidacte",
 };
 
@@ -161,7 +161,7 @@ export default function Profile() {
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-1" data-testid="text-username">{user?.username || "Apprenant STEM"}</h2>
               <Badge variant="secondary" className="mb-2">
-                {profile?.educationLevel ? educationLabels[profile.educationLevel as keyof typeof educationLabels] : "Non d\u00e9fini"}
+                {profile?.educationLevel ? educationLabels[profile.educationLevel as keyof typeof educationLabels] : "Non défini"}
               </Badge>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F5B700]/10">
@@ -205,7 +205,7 @@ export default function Profile() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Star className="h-4 w-4 text-accent" />
-            Centres d'int\u00e9r\u00eat
+            Centres d'intérêt
           </h3>
           <div className="flex flex-wrap gap-2">
             {profile?.interests?.map((interest) => {
@@ -240,13 +240,13 @@ export default function Profile() {
             </div>
             <div className="p-3 rounded-lg bg-background/60">
               <div className="text-2xl font-bold text-[#F5B700]">{streak}</div>
-              <div className="text-xs text-muted-foreground">S\u00e9rie jours</div>
+              <div className="text-xs text-muted-foreground">Série jours</div>
             </div>
             <div className="p-3 rounded-lg bg-background/60">
               <div className="text-2xl font-bold text-accent">
                 {profile?.interests?.length || 0}
               </div>
-              <div className="text-xs text-muted-foreground">Int\u00e9r\u00eats</div>
+              <div className="text-xs text-muted-foreground">Intérêts</div>
             </div>
           </div>
         </Card>
@@ -293,7 +293,7 @@ export default function Profile() {
 
               {smartProfile.detectedCompetencies.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Comp\u00e9tences d\u00e9tect\u00e9es</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Compétences détectées</p>
                   <div className="flex flex-wrap gap-1.5">
                     {smartProfile.detectedCompetencies.map((comp) => (
                       <Badge key={comp} variant="secondary" className="text-xs">
@@ -321,7 +321,7 @@ export default function Profile() {
 
               {smartProfile.areasToImprove.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">\u00c0 am\u00e9liorer</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">À améliorer</p>
                   <div className="flex flex-wrap gap-1.5">
                     {smartProfile.areasToImprove.map((area) => (
                       <Badge key={area} variant="secondary" className="text-xs">
@@ -343,7 +343,7 @@ export default function Profile() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Trophy className="h-4 w-4 text-[#F5B700]" />
-            R\u00e9alisations r\u00e9centes
+            Réalisations récentes
           </h3>
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
@@ -351,8 +351,8 @@ export default function Profile() {
                 <Flame className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="font-medium text-sm">Premi\u00e8re s\u00e9rie</p>
-                <p className="text-xs text-muted-foreground">Tu as maintenu ta s\u00e9rie 3 jours</p>
+                <p className="font-medium text-sm">Première série</p>
+                <p className="text-xs text-muted-foreground">Tu as maintenu ta série 3 jours</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
@@ -427,7 +427,7 @@ export default function Profile() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            Contacter l'\u00e9quipe
+            Contacter l'équipe
           </h3>
           <a
             href="mailto:contact.equipe.learnxscience@gmail.com"
@@ -451,7 +451,7 @@ export default function Profile() {
           data-testid="button-logout"
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Se d\u00e9connecter
+          Se déconnecter
         </Button>
       </main>
 

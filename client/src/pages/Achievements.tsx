@@ -142,7 +142,7 @@ export default function Achievements() {
             contribution: "Contribution",
             performance: "Performance",
             social: "Social",
-            special: "Sp\u00e9cial",
+            special: "Spécial",
           };
 
           return (

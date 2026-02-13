@@ -80,7 +80,7 @@ export default function Community() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activity-feed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leaderboard"] });
-      toast({ title: "Suivi avec succ\u00e8s" });
+      toast({ title: "Suivi avec succès" });
     },
   });
 
@@ -91,7 +91,7 @@ export default function Community() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activity-feed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leaderboard"] });
-      toast({ title: "D\u00e9sabonn\u00e9 avec succ\u00e8s" });
+      toast({ title: "Désabonné avec succès" });
     },
   });
 
@@ -103,7 +103,7 @@ export default function Community() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="p-4">
-          <h1 className="text-xl font-bold mb-3" data-testid="text-community-title">Communaut\u00e9</h1>
+          <h1 className="text-xl font-bold mb-3" data-testid="text-community-title">Communauté</h1>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -137,7 +137,7 @@ export default function Community() {
             data-testid="tab-feed"
           >
             <Rss className="h-3.5 w-3.5" />
-            Fil d'actualit\u00e9
+            Fil d'actualité
           </button>
           <button
             onClick={() => { setActiveTab("discover"); setSearchQuery(""); setSearchInput(""); }}
@@ -149,7 +149,7 @@ export default function Community() {
             data-testid="tab-discover"
           >
             <Compass className="h-3.5 w-3.5" />
-            D\u00e9couvrir
+            Découvrir
           </button>
         </div>
       </header>
@@ -158,7 +158,7 @@ export default function Community() {
         {searchQuery.length > 0 ? (
           <>
             <h2 className="text-sm font-semibold text-muted-foreground" data-testid="text-search-results-title">
-              R\u00e9sultats pour "{searchQuery}"
+              Résultats pour "{searchQuery}"
             </h2>
             {searchLoading ? (
               <div className="space-y-3">
@@ -209,7 +209,7 @@ export default function Community() {
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm">Aucun utilisateur trouv\u00e9.</p>
+                <p className="text-muted-foreground text-sm">Aucun utilisateur trouvé.</p>
               </div>
             )}
           </>
@@ -273,16 +273,16 @@ export default function Community() {
                 <div className="inline-flex p-4 rounded-full bg-muted mb-4">
                   <Rss className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Aucune activit\u00e9</h3>
+                <h3 className="text-lg font-semibold mb-2">Aucune activité</h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Suivez des utilisateurs pour voir leur activit\u00e9 ici.
+                  Suivez des utilisateurs pour voir leur activité ici.
                 </p>
                 <Button
                   onClick={() => setActiveTab("discover")}
                   data-testid="button-discover-users"
                 >
                   <Compass className="h-4 w-4 mr-2" />
-                  D\u00e9couvrir des utilisateurs
+                  Découvrir des utilisateurs
                 </Button>
               </div>
             )}
@@ -290,7 +290,7 @@ export default function Community() {
         ) : (
           <>
             <h2 className="text-sm font-semibold text-muted-foreground" data-testid="text-discover-title">
-              Utilisateurs sugg\u00e9r\u00e9s
+              Utilisateurs suggérés
             </h2>
             {leaderboardLoading ? (
               <div className="space-y-3">
@@ -323,7 +323,7 @@ export default function Community() {
                 ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm">Aucun utilisateur \u00e0 d\u00e9couvrir.</p>
+                <p className="text-muted-foreground text-sm">Aucun utilisateur à découvrir.</p>
               </div>
             )}
           </>

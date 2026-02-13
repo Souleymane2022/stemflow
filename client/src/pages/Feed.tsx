@@ -83,7 +83,7 @@ export default function Feed() {
       celebrateMissionComplete();
       addWeeklyXp(completed.xpReward);
       addXp(completed.xpReward);
-      toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+      toast({ title: "Quête complétée !", description: `+${completed.xpReward} XP - ${completed.title}` });
     }
   }, [updateQuestProgress, addWeeklyXp, addXp, toast]);
 

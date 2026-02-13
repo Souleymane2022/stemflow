@@ -28,9 +28,9 @@ interface ChatMessage {
 }
 
 const quickActions = [
-  { label: "Reformuler", icon: RefreshCw, prompt: "Peux-tu reformuler ce concept de mani\u00e8re plus simple :" },
-  { label: "V\u00e9rifier calcul", icon: Calculator, prompt: "V\u00e9rifie ce calcul math\u00e9matique et explique la solution :" },
-  { label: "Expliquer", icon: BookOpen, prompt: "Explique-moi ce concept STEM \u00e9tape par \u00e9tape :" },
+  { label: "Reformuler", icon: RefreshCw, prompt: "Peux-tu reformuler ce concept de manière plus simple :" },
+  { label: "Vérifier calcul", icon: Calculator, prompt: "Vérifie ce calcul mathématique et explique la solution :" },
+  { label: "Expliquer", icon: BookOpen, prompt: "Explique-moi ce concept STEM étape par étape :" },
   { label: "Exercice", icon: Lightbulb, prompt: "Propose-moi un exercice pratique sur :" },
 ];
 
@@ -51,7 +51,7 @@ export default function AIAssistant() {
     onError: () => {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "D\u00e9sol\u00e9, une erreur s'est produite. R\u00e9essaie dans un moment." },
+        { role: "assistant", content: "Désolé, une erreur s'est produite. Réessaie dans un moment." },
       ]);
     },
   });
@@ -119,13 +119,13 @@ export default function AIAssistant() {
             </div>
             <h2 className="text-xl font-bold mb-2">Bienvenue !</h2>
             <p className="text-muted-foreground text-sm mb-6 max-w-xs">
-              Je suis ton assistant STEM. Pose-moi une question en Science, Technologie, Ing\u00e9nierie ou Math\u00e9matiques.
+              Je suis ton assistant STEM. Pose-moi une question en Science, Technologie, Ingénierie ou Mathématiques.
             </p>
 
             <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
               {[
-                { text: "Comment fonctionne la photosynth\u00e8se ?", icon: Lightbulb, gradient: "from-[#0B3C5D]/10 to-[#00C896]/10" },
-                { text: "R\u00e9sous : 2x\u00b2 + 5x - 3 = 0", icon: Calculator, gradient: "from-[#00C896]/10 to-[#F5B700]/10" },
+                { text: "Comment fonctionne la photosynthèse ?", icon: Lightbulb, gradient: "from-[#0B3C5D]/10 to-[#00C896]/10" },
+                { text: "Résous : 2x² + 5x - 3 = 0", icon: Calculator, gradient: "from-[#00C896]/10 to-[#F5B700]/10" },
                 { text: "Explique le protocole TCP/IP", icon: Zap, gradient: "from-[#F5B700]/10 to-[#0B3C5D]/10" },
                 { text: "Comment construire un pont ?", icon: BookOpen, gradient: "from-[#0B3C5D]/10 to-[#F5B700]/10" },
               ].map((suggestion, i) => (

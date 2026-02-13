@@ -102,7 +102,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", profileId] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", profileId, "is-following"] });
-      toast({ title: "Suivi avec succ\u00e8s" });
+      toast({ title: "Suivi avec succès" });
     },
   });
 
@@ -113,7 +113,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users", profileId] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", profileId, "is-following"] });
-      toast({ title: "D\u00e9sabonn\u00e9 avec succ\u00e8s" });
+      toast({ title: "Désabonné avec succès" });
     },
   });
 
@@ -230,7 +230,7 @@ export default function UserProfile() {
                 {isFollowing ? (
                   <>
                     <UserMinus className="h-4 w-4 mr-2" />
-                    Se d\u00e9sabonner
+                    Se désabonner
                   </>
                 ) : (
                   <>
@@ -248,7 +248,7 @@ export default function UserProfile() {
             <Card className="p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
-                Centres d'int\u00e9r\u00eat
+                Centres d'intérêt
               </h3>
               <div className="flex flex-wrap gap-2">
                 {user.interests.map((interest: string) => {
@@ -273,7 +273,7 @@ export default function UserProfile() {
           <Card className="p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4 text-accent" />
-              Activit\u00e9 r\u00e9cente
+              Activité récente
             </h3>
             {activitiesLoading ? (
               <div className="space-y-3">
@@ -306,7 +306,7 @@ export default function UserProfile() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Aucune activit\u00e9 r\u00e9cente.
+                Aucune activité récente.
               </p>
             )}
           </Card>

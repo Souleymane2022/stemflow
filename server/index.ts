@@ -29,6 +29,13 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+  }
+  next();
+});
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",

@@ -186,7 +186,7 @@ export default function Missions() {
               </div>
               <h3 className="text-lg font-semibold mb-2">Tout est fait !</h3>
               <p className="text-muted-foreground">
-                Tu as compl\u00e9t\u00e9 toutes tes missions. Reviens demain !
+                Tu as complété toutes tes missions. Reviens demain !
               </p>
             </Card>
           )}
@@ -196,7 +196,7 @@ export default function Missions() {
           <section>
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-              Missions compl\u00e9t\u00e9es ({completedMissions.length})
+              Missions complétées ({completedMissions.length})
             </h2>
             <div className="space-y-3">
               {completedMissions.slice(0, 3).map((mission: Mission) => {
@@ -219,7 +219,7 @@ export default function Missions() {
                         </div>
                         <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
                           <Zap className="h-3 w-3" />
-                          <span>+{mission.xpReward} XP gagn\u00e9s</span>
+                          <span>+{mission.xpReward} XP gagnés</span>
                         </div>
                       </div>
                     </div>

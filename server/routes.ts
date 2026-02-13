@@ -196,9 +196,31 @@ export async function registerRoutes(
     res.json(safeUser);
   });
 
+  app.get("/api/feed", requireAuth, async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      let content;
+      if (category && category !== "all") {
+        content = await storage.getContentByCategory(category);
+      } else {
+        content = await storage.getAllContent();
+      }
+
+      const userLikes = await storage.getUserLikes(req.session.userId!);
+      const contentWithLikes = content.map((c) => ({
+        ...c,
+        userLiked: userLikes.includes(c.id),
+      }));
+
+      res.json(contentWithLikes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch feed" });
+    }
+  });
+
   app.get("/api/feed/:category", requireAuth, async (req, res) => {
     try {
-      const category = req.params.category;
+      const category = req.params.category as string;
       let content;
       if (category && category !== "all") {
         content = await storage.getContentByCategory(category);
@@ -256,7 +278,7 @@ export async function registerRoutes(
         userId: contentData.authorId,
         username: contentData.authorName,
         activityType: "content_created",
-        description: `a publi\u00e9 un nouveau contenu : ${content.title}`,
+        description: `a publié un nouveau contenu : ${content.title}`,
       });
 
       res.json(content);
@@ -370,7 +392,7 @@ export async function registerRoutes(
           userId: quizUser.id,
           username: quizUser.username,
           activityType: "quiz_completed",
-          description: `a compl\u00e9t\u00e9 un quiz : ${quizContent?.title || "Quiz"} (${score}/${questions.length})`,
+          description: `a complété un quiz : ${quizContent?.title || "Quiz"} (${score}/${questions.length})`,
         });
       }
 
