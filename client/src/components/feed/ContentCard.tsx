@@ -55,7 +55,7 @@ function isDirectVideo(url: string): boolean {
 
 function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientColor: string; contentId: string }) {
   const [playing, setPlaying] = useState(false);
-  const [error, setError] = useState(false);
+  const videoRef = useState<HTMLVideoElement | null>(null);
   const youtubeId = getYouTubeId(url);
 
   if (youtubeId) {
@@ -95,24 +95,39 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
   if (isDirectVideo(url)) {
     return (
       <div className="aspect-video bg-black relative overflow-hidden" data-testid={`video-player-${contentId}`}>
-        <video
-          src={url}
-          controls
-          playsInline
-          preload="metadata"
-          className="w-full h-full object-contain"
-          onError={() => setError(true)}
-        >
-          Votre navigateur ne supporte pas la lecture vidéo.
-        </video>
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
-            <Play className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">Impossible de charger la vidéo</p>
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-accent mt-1 underline">
-              Ouvrir le lien
-            </a>
+        {!playing ? (
+          <div
+            className="absolute inset-0 cursor-pointer group"
+            onClick={() => setPlaying(true)}
+            data-testid={`video-play-button-${contentId}`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-30`} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="p-4 rounded-full bg-white/90 dark:bg-black/80 group-hover:scale-110 transition-transform">
+                <Play className="h-8 w-8 text-primary fill-primary" />
+              </div>
+            </div>
+            <div className="absolute bottom-3 left-0 right-0 text-center">
+              <span className="text-sm text-white font-medium bg-black/40 px-3 py-1 rounded-full">
+                Appuyer pour lire
+              </span>
+            </div>
           </div>
+        ) : (
+          <video
+            ref={(el) => {
+              if (el && !videoRef[0]) {
+                videoRef[0] = el;
+                el.play().catch(() => {});
+              }
+            }}
+            src={url}
+            controls
+            autoPlay
+            playsInline
+            className="w-full h-full object-contain"
+            data-testid={`video-element-${contentId}`}
+          />
         )}
       </div>
     );
