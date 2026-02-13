@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useUserState } from "@/lib/userState";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { StemFlowLogo } from "@/components/StemFlowLogo";
+import stemFlowLogo from "@assets/WhatsApp_Image_2026-02-13_at_19.39.13_1771008048536.jpeg";
 import {
   Mail,
   Lock,
@@ -138,22 +138,29 @@ export default function Auth() {
   const isPending = loginMutation.isPending || registerMutation.isPending || activateMutation.isPending;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0B3C5D] via-[#0B3C5D]/90 to-[#00C896]/30">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0a6e8a] via-[#0B3C5D] to-[#0a6e8a]/80 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(10,110,138,0.4)_0%,transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(0,200,150,0.15)_0%,transparent_50%)]" />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10 text-center"
+        className="mb-8 text-center relative z-10"
       >
         <div className="flex justify-center mb-3">
-          <StemFlowLogo size="md" variant="light" />
+          <img
+            src={stemFlowLogo}
+            alt="STEM flow"
+            className="h-20 w-auto object-contain drop-shadow-lg"
+            data-testid="img-auth-logo"
+          />
         </div>
-        <p className="text-white/80 text-sm italic tracking-wide">Scroll. Learn. Level Up.</p>
+        <p className="text-white/70 text-sm italic tracking-wide">Scroll. Learn. Level Up.</p>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <Card className="p-6">
           {step !== "activate" && (
@@ -384,7 +391,7 @@ export default function Auth() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-6 text-center"
+        className="mt-6 text-center relative z-10"
       >
         <p className="text-white/50 text-xs">
           contact.equipe.learnxscience@gmail.com
