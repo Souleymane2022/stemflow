@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
+import { DailyQuestsWidget } from "@/components/DailyQuestsWidget";
 import { useUserState } from "@/lib/userState";
+import { useLeagueState } from "@/lib/leagues";
+import { useDailyQuests } from "@/lib/dailyQuests";
 import {
   Target,
   Zap,
@@ -24,10 +27,12 @@ import {
   Clock,
   Trophy,
   CheckCircle2,
+  Shield,
+  Snowflake,
 } from "lucide-react";
 import type { Mission } from "@shared/schema";
 
-const missionTypeIcons = {
+const missionTypeIcons: Record<string, any> = {
   watch_videos: Play,
   complete_quiz: HelpCircle,
   join_salon: UserPlus,
@@ -38,7 +43,7 @@ const missionTypeIcons = {
   streak: Flame,
 };
 
-const frequencyLabels = {
+const frequencyLabels: Record<string, any> = {
   daily: { label: "Quotidienne", icon: Clock, color: "bg-blue-500/20 text-blue-600 dark:text-blue-400" },
   weekly: { label: "Hebdomadaire", icon: Calendar, color: "bg-purple-500/20 text-purple-600 dark:text-purple-400" },
   one_time: { label: "Unique", icon: Trophy, color: "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400" },
@@ -47,17 +52,19 @@ const frequencyLabels = {
 export default function Missions() {
   const [, setLocation] = useLocation();
   const { xp, streak } = useUserState();
+  const { getCurrentLeague } = useLeagueState();
+  const { streakFreezeCount } = useDailyQuests();
+  const currentLeague = getCurrentLeague();
 
   const { data: missions, isLoading } = useQuery<Mission[]>({
     queryKey: ["/api/missions"],
   });
 
-  const activeMissions = missions?.filter((m) => !m.completed) || [];
-  const completedMissions = missions?.filter((m) => m.completed) || [];
+  const activeMissions = missions?.filter((m: Mission) => !m.completed) || [];
+  const completedMissions = missions?.filter((m: Mission) => m.completed) || [];
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between gap-3 p-4">
           <div>
@@ -78,9 +85,30 @@ export default function Missions() {
         </div>
       </header>
 
-      {/* Missions List */}
-      <main className="p-4 space-y-6 max-w-lg mx-auto">
-        {/* Active Missions */}
+      <main className="p-4 space-y-4 max-w-lg mx-auto">
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="p-3 flex items-center gap-3">
+            <div className={`p-2 rounded-full bg-gradient-to-br ${currentLeague.gradient}`}>
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Ligue {currentLeague.name}</p>
+              <p className="text-xs text-muted-foreground">Tier {currentLeague.tier}</p>
+            </div>
+          </Card>
+          <Card className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500">
+              <Snowflake className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{streakFreezeCount} Gel(s)</p>
+              <p className="text-xs text-muted-foreground">Protège ta série</p>
+            </div>
+          </Card>
+        </div>
+
+        <DailyQuestsWidget />
+
         <section>
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
@@ -104,8 +132,8 @@ export default function Missions() {
             </div>
           ) : activeMissions.length > 0 ? (
             <div className="space-y-3">
-              {activeMissions.map((mission, index) => {
-                const MissionIcon = missionTypeIcons[mission.missionType];
+              {activeMissions.map((mission: Mission, index: number) => {
+                const MissionIcon = missionTypeIcons[mission.missionType] || Target;
                 const freq = frequencyLabels[mission.frequency];
                 const progress = (mission.currentProgress / mission.targetValue) * 100;
 
@@ -122,7 +150,7 @@ export default function Missions() {
                           <MissionIcon className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
                             <h3 className="font-semibold">{mission.title}</h3>
                             <Badge className={`text-xs ${freq.color}`}>
                               <freq.icon className="h-3 w-3 mr-1" />
@@ -133,11 +161,11 @@ export default function Missions() {
                             {mission.description}
                           </p>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between gap-3 text-sm flex-wrap">
                               <span className="text-muted-foreground">
                                 {mission.currentProgress} / {mission.targetValue}
                               </span>
-                              <div className="flex items-center gap-1 text-primary">
+                              <div className="flex items-center gap-1 text-accent">
                                 <Zap className="h-3 w-3" />
                                 <span className="font-semibold">+{mission.xpReward} XP</span>
                               </div>
@@ -158,22 +186,21 @@ export default function Missions() {
               </div>
               <h3 className="text-lg font-semibold mb-2">Tout est fait !</h3>
               <p className="text-muted-foreground">
-                Tu as complété toutes tes missions. Reviens demain !
+                Tu as compl\u00e9t\u00e9 toutes tes missions. Reviens demain !
               </p>
             </Card>
           )}
         </section>
 
-        {/* Completed Missions */}
         {completedMissions.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-              Missions complétées ({completedMissions.length})
+              Missions compl\u00e9t\u00e9es ({completedMissions.length})
             </h2>
             <div className="space-y-3">
-              {completedMissions.slice(0, 3).map((mission) => {
-                const MissionIcon = missionTypeIcons[mission.missionType];
+              {completedMissions.slice(0, 3).map((mission: Mission) => {
+                const MissionIcon = missionTypeIcons[mission.missionType] || Target;
 
                 return (
                   <Card
@@ -186,13 +213,13 @@ export default function Missions() {
                         <MissionIcon className="h-6 w-6 text-green-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold line-through">{mission.title}</h3>
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
                         </div>
                         <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
                           <Zap className="h-3 w-3" />
-                          <span>+{mission.xpReward} XP gagnés</span>
+                          <span>+{mission.xpReward} XP gagn\u00e9s</span>
                         </div>
                       </div>
                     </div>

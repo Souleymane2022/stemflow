@@ -62,8 +62,12 @@ client/
 │   ├── lib/
 │   │   ├── queryClient.ts            # TanStack Query setup
 │   │   ├── userState.ts              # Zustand user state store
+│   │   ├── celebrations.ts           # Confetti celebrations for achievements
+│   │   ├── dailyQuests.ts            # Daily quests zustand store
+│   │   ├── leagues.ts                # League system zustand store
 │   │   └── utils.ts                  # Utility functions
 │   ├── pages/
+│   │   ├── Achievements.tsx          # Badge collection page
 │   │   ├── AIAssistant.tsx           # AI tutoring assistant chat
 │   │   ├── Feed.tsx                  # Main content feed with smart recommendations
 │   │   ├── Home.tsx                  # Landing page
@@ -107,12 +111,40 @@ shared/
 - Mission types: watch_videos, complete_quiz, join_salon, comment, share, streak
 - Frequencies: daily, weekly, one_time
 - XP rewards and progress tracking
+- Daily Quests: 3 randomized quests per day with auto-reset at midnight
+- Quest types: view_content, like_content, comment, quiz, share, visit_room
 
 ### 5. User Profile
 - Level progression with XP
 - Streak tracking
 - Interest badges
 - Achievement system
+- League & streak freeze display
+
+### 6. League System (Duolingo-inspired)
+- 10-tier progression: Bronze, Argent, Or, Saphir, Rubis, Emeraude, Améthyste, Perle, Obsidienne, Diamant
+- Weekly XP tracking with promotions/demotions
+- League banner on Leaderboard page
+- Zustand-persisted state (client/src/lib/leagues.ts)
+
+### 7. Daily Quests System
+- 3 random quests daily from 8 templates
+- Auto-reset at midnight
+- XP multiplier with XP Boost (2x)
+- Streak Freeze inventory to protect streaks
+- Widget on Missions page (DailyQuestsWidget)
+- Zustand-persisted state (client/src/lib/dailyQuests.ts)
+
+### 8. Achievements & Badges
+- Badge collection page (/achievements)
+- Categories: Contribution, Performance, Social, Special
+- Locked/unlocked visual states
+- API: GET /api/badges, GET /api/user-badges
+
+### 9. Celebrations
+- canvas-confetti library for visual feedback
+- Triggers: XP gains, level ups, mission/quest completion, streak milestones, badge earned, league promotion
+- Library: client/src/lib/celebrations.ts
 
 ## API Endpoints
 

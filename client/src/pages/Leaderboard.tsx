@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserState } from "@/lib/userState";
+import { useLeagueState } from "@/lib/leagues";
 import {
   ArrowLeft,
   Trophy,
@@ -24,6 +25,7 @@ import {
   Wrench,
   Calculator,
   Flame,
+  Shield,
 } from "lucide-react";
 import type { LeaderboardEntry } from "@shared/schema";
 
@@ -44,6 +46,8 @@ const podiumColors = [
 export default function Leaderboard() {
   const [, setLocation] = useLocation();
   const { xp, streak } = useUserState();
+  const { getCurrentLeague } = useLeagueState();
+  const currentLeague = getCurrentLeague();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: leaderboard, isLoading } = useQuery<LeaderboardEntry[]>({
@@ -78,6 +82,20 @@ export default function Leaderboard() {
           </div>
         </div>
       </header>
+
+      <div className="mx-4 mt-3 mb-2">
+        <Card className={`p-3 bg-gradient-to-r ${currentLeague.gradient} text-white`}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              <span className="font-semibold text-sm">Ligue {currentLeague.name}</span>
+            </div>
+            <Badge className="bg-white/20 text-white border-white/30 text-xs">
+              Tier {currentLeague.tier} / 10
+            </Badge>
+          </div>
+        </Card>
+      </div>
 
       <div className="px-4 py-2 overflow-x-auto">
         <div className="flex gap-2">

@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
 import { apiRequest } from "@/lib/queryClient";
+import { useLeagueState } from "@/lib/leagues";
+import { useDailyQuests } from "@/lib/dailyQuests";
 import {
   Zap,
   Flame,
@@ -34,6 +36,9 @@ import {
   RefreshCw,
   Mail,
   Users,
+  Shield,
+  Snowflake,
+  Award,
 } from "lucide-react";
 
 const levelConfig = {
@@ -70,6 +75,9 @@ interface SmartProfileData {
 export default function Profile() {
   const [, setLocation] = useLocation();
   const { profile, xp, streak, userId, user, logout } = useUserState();
+  const { getCurrentLeague } = useLeagueState();
+  const { streakFreezeCount } = useDailyQuests();
+  const currentLeague = getCurrentLeague();
   const [smartProfile, setSmartProfile] = useState<SmartProfileData | null>(null);
 
   const currentLevel = profile?.level || "curieux";
@@ -359,7 +367,34 @@ export default function Profile() {
           </div>
         </Card>
 
-        <div className="grid grid-cols-2 gap-3">
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <Shield className="h-4 w-4 text-accent" />
+            Ligue & Objets
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
+              <div className={`p-2 rounded-full bg-gradient-to-br ${currentLeague.gradient}`}>
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Ligue {currentLeague.name}</p>
+                <p className="text-xs text-muted-foreground">Tier {currentLeague.tier}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
+              <div className="p-2 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500">
+                <Snowflake className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">{streakFreezeCount} Gel(s)</p>
+                <p className="text-xs text-muted-foreground">Streak Freeze</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <div className="grid grid-cols-3 gap-3">
           <Button
             variant="outline"
             className="w-full"
@@ -372,11 +407,20 @@ export default function Profile() {
           <Button
             variant="outline"
             className="w-full"
+            onClick={() => setLocation("/achievements")}
+            data-testid="button-achievements"
+          >
+            <Award className="h-4 w-4 mr-2" />
+            Badges
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
             onClick={() => setLocation("/leaderboard")}
             data-testid="button-leaderboard"
           >
             <Trophy className="h-4 w-4 mr-2" />
-            Classement
+            Rang
           </Button>
         </div>
 

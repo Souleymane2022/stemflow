@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { motion } from "framer-motion";
@@ -9,6 +10,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserState } from "@/lib/userState";
+import { useDailyQuests } from "@/lib/dailyQuests";
+import { useLeagueState } from "@/lib/leagues";
+import { celebrateMissionComplete } from "@/lib/celebrations";
+import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
   Users,
@@ -52,7 +57,21 @@ const roleLabels = {
 export default function RoomDetail() {
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
-  const { xp, streak } = useUserState();
+  const { xp, streak, addXp } = useUserState();
+  const { toast } = useToast();
+  const { generateDailyQuests, updateQuestProgress } = useDailyQuests();
+  const { addWeeklyXp } = useLeagueState();
+
+  useEffect(() => {
+    generateDailyQuests();
+    const completed = updateQuestProgress("visit_room");
+    if (completed) {
+      celebrateMissionComplete();
+      addWeeklyXp(completed.xpReward);
+      addXp(completed.xpReward);
+      toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+    }
+  }, [params.id]);
 
   const { data: room, isLoading } = useQuery<Room>({
     queryKey: ["/api/rooms", params.id],

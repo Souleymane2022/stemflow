@@ -8,6 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useUserState } from "@/lib/userState";
 import { apiRequest } from "@/lib/queryClient";
+import { useDailyQuests } from "@/lib/dailyQuests";
+import { useLeagueState } from "@/lib/leagues";
+import { celebrateXpGain, celebrateMissionComplete } from "@/lib/celebrations";
 import {
   ArrowLeft,
   Check,
@@ -26,6 +29,8 @@ export default function QuizPlayer() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { addXp } = useUserState();
+  const { updateQuestProgress } = useDailyQuests();
+  const { addWeeklyXp } = useLeagueState();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
@@ -53,7 +58,18 @@ export default function QuizPlayer() {
       setShowResult(true);
       const xpEarned = Math.round((data.score / data.totalQuestions) * (content?.xpReward || 50));
       addXp(xpEarned);
+      addWeeklyXp(xpEarned);
+      celebrateXpGain(xpEarned);
       toast({ title: `+${xpEarned} XP`, description: `Score: ${data.score}/${data.totalQuestions}` });
+      const completed = updateQuestProgress("quiz");
+      if (completed) {
+        setTimeout(() => {
+          celebrateMissionComplete();
+          addWeeklyXp(completed.xpReward);
+          addXp(completed.xpReward);
+          toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+        }, 1000);
+      }
     },
   });
 

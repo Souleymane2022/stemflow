@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { useUserState } from "@/lib/userState";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useDailyQuests } from "@/lib/dailyQuests";
+import { useLeagueState } from "@/lib/leagues";
+import { celebrateXpGain, celebrateMissionComplete } from "@/lib/celebrations";
 import {
   Heart,
   MessageCircle,
@@ -67,8 +70,10 @@ export function ContentCard({
   showLearnScore = false,
 }: ContentCardProps) {
   const [, setLocation] = useLocation();
-  const { userId } = useUserState();
+  const { userId, addXp } = useUserState();
   const { toast } = useToast();
+  const { updateQuestProgress } = useDailyQuests();
+  const { addWeeklyXp } = useLeagueState();
   const [liked, setLiked] = useState(content.userLiked || false);
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(content.likes ?? 0);
@@ -142,6 +147,15 @@ export function ContentCard({
 
   const handleLike = () => {
     likeMutation.mutate();
+    if (!liked) {
+      const completed = updateQuestProgress("like_content");
+      if (completed) {
+        celebrateMissionComplete();
+        addWeeklyXp(completed.xpReward);
+        addXp(completed.xpReward);
+        toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+      }
+    }
   };
 
   const handleSave = () => {
@@ -152,6 +166,13 @@ export function ContentCard({
     e.preventDefault();
     if (commentText.trim()) {
       commentMutation.mutate(commentText.trim());
+      const completed = updateQuestProgress("comment");
+      if (completed) {
+        celebrateMissionComplete();
+        addWeeklyXp(completed.xpReward);
+        addXp(completed.xpReward);
+        toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+      }
     }
   };
 
@@ -161,6 +182,13 @@ export function ContentCard({
 
   const handleShare = async (platform?: string) => {
     shareMutation.mutate();
+    const completed = updateQuestProgress("share");
+    if (completed) {
+      celebrateMissionComplete();
+      addWeeklyXp(completed.xpReward);
+      addXp(completed.xpReward);
+      toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+    }
 
     if (!platform && navigator.share) {
       try {

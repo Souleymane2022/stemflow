@@ -21,6 +21,7 @@ import QuizPlayer from "@/pages/QuizPlayer";
 import Leaderboard from "@/pages/Leaderboard";
 import AIAssistant from "@/pages/AIAssistant";
 import Auth from "@/pages/Auth";
+import Achievements from "@/pages/Achievements";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, setUser, logout } = useUserState();
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/create/:type" component={CreateContent} />
       <Route path="/quiz/:id" component={QuizPlayer} />
       <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/achievements" component={Achievements} />
       <Route path="/assistant" component={AIAssistant} />
       <Route component={NotFound} />
     </Switch>

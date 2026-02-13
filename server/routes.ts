@@ -398,6 +398,15 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/user-badges", requireAuth, async (req, res) => {
+    try {
+      const userBadges = await storage.getUserBadges(req.session.userId!);
+      res.json(userBadges);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user badges" });
+    }
+  });
+
   app.get("/api/users/:id/badges", requireAuth, async (req, res) => {
     try {
       const userBadges = await storage.getUserBadges(req.params.id);

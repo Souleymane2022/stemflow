@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -9,6 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
 import { apiRequest } from "@/lib/queryClient";
+import { useDailyQuests } from "@/lib/dailyQuests";
+import { useLeagueState } from "@/lib/leagues";
+import { celebrateMissionComplete } from "@/lib/celebrations";
+import { useToast } from "@/hooks/use-toast";
 import {
   Lightbulb,
   Cpu,
@@ -29,12 +33,59 @@ const categories = [
   { value: "mathematics", label: "Maths", icon: Calculator },
 ];
 
+function FeedContentItem({ content, index, onView, onJoinRoom, showLearnScore }: {
+  content: Content;
+  index: number;
+  onView: (id: string) => void;
+  onJoinRoom: () => void;
+  showLearnScore: boolean;
+}) {
+  useEffect(() => {
+    onView(content.id);
+  }, [content.id]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08 }}
+    >
+      <ContentCard
+        content={content}
+        onJoinRoom={onJoinRoom}
+        showLearnScore={showLearnScore}
+      />
+    </motion.div>
+  );
+}
+
 export default function Feed() {
   const [, setLocation] = useLocation();
-  const { profile, xp, streak } = useUserState();
+  const { profile, xp, streak, addXp } = useUserState();
+  const { toast } = useToast();
+  const { generateDailyQuests, updateQuestProgress } = useDailyQuests();
+  const { addWeeklyXp, checkWeekReset } = useLeagueState();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [smartFeed, setSmartFeed] = useState(false);
   const [smartExplanation, setSmartExplanation] = useState("");
+  const viewTrackedRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    generateDailyQuests();
+    checkWeekReset();
+  }, []);
+
+  const trackContentView = useCallback((contentId: string) => {
+    if (viewTrackedRef.current.has(contentId)) return;
+    viewTrackedRef.current.add(contentId);
+    const completed = updateQuestProgress("view_content");
+    if (completed) {
+      celebrateMissionComplete();
+      addWeeklyXp(completed.xpReward);
+      addXp(completed.xpReward);
+      toast({ title: "Qu\u00eate compl\u00e9t\u00e9e !", description: `+${completed.xpReward} XP - ${completed.title}` });
+    }
+  }, [updateQuestProgress, addWeeklyXp, addXp, toast]);
 
   const { data: contents, isLoading } = useQuery<Content[]>({
     queryKey: ["/api/feed", selectedCategory],
@@ -149,18 +200,14 @@ export default function Feed() {
           </>
         ) : displayContents && displayContents.length > 0 ? (
           displayContents.map((content: Content, index: number) => (
-            <motion.div
+            <FeedContentItem
               key={content.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08 }}
-            >
-              <ContentCard
-                content={content}
-                onJoinRoom={() => setLocation(`/rooms/${content.roomId}`)}
-                showLearnScore={smartFeed}
-              />
-            </motion.div>
+              content={content}
+              index={index}
+              onView={trackContentView}
+              onJoinRoom={() => setLocation(`/rooms/${content.roomId}`)}
+              showLearnScore={smartFeed}
+            />
           ))
         ) : (
           <div className="text-center py-12">
