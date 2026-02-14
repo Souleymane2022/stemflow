@@ -124,6 +124,7 @@ export const commentsTable = pgTable("comments", {
   userId: text("user_id").notNull(),
   authorName: text("author_name").notNull(),
   text: text("text").notNull(),
+  parentId: text("parent_id"),
   likes: integer("likes").default(0),
   createdAt: text("created_at").notNull(),
 });

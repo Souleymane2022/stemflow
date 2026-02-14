@@ -33,8 +33,11 @@ import {
   Send,
   Trash2,
   X,
+  Reply,
+  Copy,
+  Check,
 } from "lucide-react";
-import { SiFacebook, SiWhatsapp, SiLinkedin } from "react-icons/si";
+import { SiFacebook, SiWhatsapp, SiLinkedin, SiInstagram } from "react-icons/si";
 import type { Content, Comment } from "@shared/schema";
 
 function getYouTubeId(url: string): string | null {
@@ -190,6 +193,154 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
   );
 }
 
+type CommentWithMeta = Comment & { userLiked?: boolean; replyCount?: number };
+
+function CommentItem({
+  comment,
+  contentId,
+  userId,
+  onReply,
+  isReply = false,
+}: {
+  comment: CommentWithMeta;
+  contentId: string;
+  userId: string | null;
+  onReply: (commentId: string, authorName: string) => void;
+  isReply?: boolean;
+}) {
+  const [localLiked, setLocalLiked] = useState(comment.userLiked || false);
+  const [localLikeCount, setLocalLikeCount] = useState(comment.likes ?? 0);
+  const [showReplies, setShowReplies] = useState(false);
+
+  const { data: replies, refetch: refetchReplies } = useQuery<CommentWithMeta[]>({
+    queryKey: ["/api/comments", comment.id, "replies"],
+    enabled: showReplies && !isReply,
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/comments/${comment.id}/like`);
+      return res.json();
+    },
+    onSuccess: (data: { liked: boolean; likeCount: number }) => {
+      setLocalLiked(data.liked);
+      setLocalLikeCount(data.likeCount);
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/comments/${comment.id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/content", contentId, "comments"] });
+    },
+  });
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "maintenant";
+    if (minutes < 60) return `${minutes}min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}j`;
+  };
+
+  const replyCount = comment.replyCount ?? 0;
+
+  return (
+    <div data-testid={`comment-${comment.id}`}>
+      <div className={`flex gap-2 ${isReply ? "pl-6 ml-2 border-l-2 border-muted" : ""}`}>
+        <Avatar className={`${isReply ? "h-6 w-6" : "h-8 w-8"} flex-shrink-0`}>
+          <AvatarFallback className={`${isReply ? "text-[10px]" : "text-xs"} gradient-stem text-white`}>
+            {comment.authorName.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="p-2 rounded-lg bg-muted/40">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <span className="text-xs font-semibold truncate">{comment.authorName}</span>
+              <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                {formatDate(comment.createdAt)}
+              </span>
+            </div>
+            <p className="text-sm leading-snug">{comment.text}</p>
+          </div>
+          <div className="flex items-center gap-3 mt-1 px-1">
+            <button
+              onClick={() => likeMutation.mutate()}
+              className={`flex items-center gap-1 text-xs transition-colors ${localLiked ? "text-red-500" : "text-muted-foreground"}`}
+              data-testid={`button-like-comment-${comment.id}`}
+            >
+              <Heart className={`h-3 w-3 ${localLiked ? "fill-current" : ""}`} />
+              {localLikeCount > 0 && <span>{localLikeCount}</span>}
+            </button>
+            {!isReply && (
+              <button
+                onClick={() => onReply(comment.id, comment.authorName)}
+                className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                data-testid={`button-reply-${comment.id}`}
+              >
+                <Reply className="h-3 w-3" />
+                Répondre
+              </button>
+            )}
+            {comment.userId === userId && (
+              <button
+                onClick={() => deleteCommentMutation.mutate()}
+                className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive"
+                data-testid={`button-delete-comment-${comment.id}`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {!isReply && replyCount > 0 && (
+            <button
+              onClick={() => {
+                setShowReplies(!showReplies);
+                if (!showReplies) refetchReplies();
+              }}
+              className="flex items-center gap-1 mt-1 px-1 text-xs text-accent font-medium"
+              data-testid={`button-show-replies-${comment.id}`}
+            >
+              {showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              {replyCount} {replyCount === 1 ? "réponse" : "réponses"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showReplies && replies && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mt-1 space-y-2"
+          >
+            {replies.map((reply) => (
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                contentId={contentId}
+                userId={userId}
+                onReply={onReply}
+                isReply
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 interface ContentCardProps {
   content: Content & { userLiked?: boolean };
   onJoinRoom?: () => void;
@@ -232,10 +383,12 @@ export function ContentCard({
   const [likeCount, setLikeCount] = useState(content.likes ?? 0);
   const [shareCount, setShareCount] = useState(content.shares ?? 0);
   const [commentCount, setCommentCount] = useState(content.comments ?? 0);
-  const [showDetails, setShowDetails] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{ commentId: string; authorName: string } | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const ContentIcon = contentTypeIcons[content.contentType] || FileText;
   const gradientColor = categoryColors[content.category] || categoryColors.science;
@@ -250,7 +403,7 @@ export function ContentCard({
     enabled: showLearnScore,
   });
 
-  const { data: comments, refetch: refetchComments } = useQuery<Comment[]>({
+  const { data: comments, refetch: refetchComments } = useQuery<CommentWithMeta[]>({
     queryKey: ["/api/content", content.id, "comments"],
     enabled: showComments,
   });
@@ -263,28 +416,25 @@ export function ContentCard({
     onSuccess: (data: { liked: boolean; likeCount: number }) => {
       setLiked(data.liked);
       setLikeCount(data.likeCount);
+      if (data.liked) {
+        celebrateXpGain(5);
+      }
     },
   });
 
   const commentMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const res = await apiRequest("POST", `/api/content/${content.id}/comments`, { text });
+    mutationFn: async (payload: { text: string; parentId?: string }) => {
+      const res = await apiRequest("POST", `/api/content/${content.id}/comments`, payload);
       return res.json();
     },
     onSuccess: () => {
       setCommentText("");
       setCommentCount((c) => c + 1);
+      setReplyingTo(null);
       refetchComments();
-    },
-  });
-
-  const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: string) => {
-      await apiRequest("DELETE", `/api/comments/${commentId}`);
-    },
-    onSuccess: () => {
-      setCommentCount((c) => Math.max(0, c - 1));
-      refetchComments();
+      if (replyingTo) {
+        queryClient.invalidateQueries({ queryKey: ["/api/comments", replyingTo.commentId, "replies"] });
+      }
     },
   });
 
@@ -313,12 +463,20 @@ export function ContentCard({
 
   const handleSave = () => {
     setSaved(!saved);
+    toast({
+      title: saved ? "Retiré des favoris" : "Ajouté aux favoris",
+      description: saved ? "Contenu retiré de tes favoris" : "Tu retrouveras ce contenu dans tes favoris",
+    });
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentText.trim()) {
-      commentMutation.mutate(commentText.trim());
+      const payload: { text: string; parentId?: string } = { text: commentText.trim() };
+      if (replyingTo) {
+        payload.parentId = replyingTo.commentId;
+      }
+      commentMutation.mutate(payload);
       const completed = updateQuestProgress("comment");
       if (completed) {
         celebrateMissionComplete();
@@ -329,9 +487,22 @@ export function ContentCard({
     }
   };
 
+  const handleReply = (commentId: string, authorName: string) => {
+    setReplyingTo({ commentId, authorName });
+    setCommentText(`@${authorName} `);
+  };
+
   const shareUrl = `${window.location.origin}/content/${content.id}`;
   const shareTitle = content.title;
   const shareText = content.description || content.title;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setLinkCopied(true);
+      toast({ title: "Lien copié !", description: "Le lien a été copié dans le presse-papier" });
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  };
 
   const handleShare = async (platform?: string) => {
     shareMutation.mutate();
@@ -370,6 +541,10 @@ export function ContentCard({
       case "linkedin":
         url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         break;
+      case "instagram":
+        navigator.clipboard.writeText(`${shareTitle}\n${shareUrl}`);
+        toast({ title: "Lien copié !", description: "Colle le lien dans ton story ou ta publication Instagram" });
+        break;
     }
 
     if (url) {
@@ -379,26 +554,13 @@ export function ContentCard({
     setShowShareMenu(false);
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "À l'instant";
-    if (minutes < 60) return `il y a ${minutes}min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days}j`;
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden" data-testid={`content-card-${content.id}`}>
+      <Card className="overflow-visible" data-testid={`content-card-${content.id}`}>
         <div className="p-4 pb-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border-2 border-primary/20">
@@ -426,7 +588,7 @@ export function ContentCard({
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative overflow-hidden">
           {content.contentType === "video" && content.videoUrl && (
             <VideoPlayer
               url={content.videoUrl}
@@ -574,7 +736,12 @@ export function ContentCard({
                 disabled={likeMutation.isPending}
                 data-testid={`button-like-${content.id}`}
               >
-                <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
+                <motion.div
+                  animate={liked ? { scale: [1, 1.3, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
+                </motion.div>
                 <span className="ml-1 text-sm">{likeCount}</span>
               </Button>
               <Button
@@ -604,7 +771,7 @@ export function ContentCard({
                       initial={{ opacity: 0, scale: 0.9, y: -5 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      className="absolute bottom-full left-0 mb-2 p-2 rounded-lg bg-card border shadow-lg z-20 min-w-[200px]"
+                      className="absolute bottom-full left-0 mb-2 p-3 rounded-lg bg-card border shadow-lg z-20 min-w-[240px]"
                     >
                       <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b">
                         <span className="text-xs font-medium text-muted-foreground">Partager via</span>
@@ -612,7 +779,7 @@ export function ContentCard({
                           <X className="h-3.5 w-3.5 text-muted-foreground" />
                         </button>
                       </div>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-5 gap-2">
                         <button
                           onClick={() => handleShare("facebook")}
                           className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
@@ -638,6 +805,14 @@ export function ContentCard({
                           <span className="text-[10px] text-muted-foreground">WhatsApp</span>
                         </button>
                         <button
+                          onClick={() => handleShare("instagram")}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
+                          data-testid={`button-share-instagram-${content.id}`}
+                        >
+                          <SiInstagram className="h-5 w-5 text-[#E4405F]" />
+                          <span className="text-[10px] text-muted-foreground">Instagram</span>
+                        </button>
+                        <button
                           onClick={() => handleShare("linkedin")}
                           className="flex flex-col items-center gap-1 p-2 rounded-lg hover-elevate"
                           data-testid={`button-share-linkedin-${content.id}`}
@@ -646,18 +821,26 @@ export function ContentCard({
                           <span className="text-[10px] text-muted-foreground">LinkedIn</span>
                         </button>
                       </div>
-                      {typeof navigator.share === "function" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-2"
-                          onClick={() => handleShare()}
-                          data-testid={`button-share-native-${content.id}`}
+                      <div className="flex gap-2 mt-2 pt-2 border-t">
+                        <button
+                          onClick={handleCopyLink}
+                          className="flex items-center gap-2 flex-1 p-2 rounded-lg bg-muted/50 text-xs text-muted-foreground hover-elevate"
+                          data-testid={`button-copy-link-${content.id}`}
                         >
-                          <Share2 className="h-3.5 w-3.5 mr-1" />
-                          Partager...
-                        </Button>
-                      )}
+                          {linkCopied ? <Check className="h-3.5 w-3.5 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
+                          {linkCopied ? "Copié !" : "Copier le lien"}
+                        </button>
+                        {typeof navigator.share === "function" && (
+                          <button
+                            onClick={() => handleShare()}
+                            className="flex items-center gap-2 flex-1 p-2 rounded-lg bg-muted/50 text-xs text-muted-foreground hover-elevate"
+                            data-testid={`button-share-native-${content.id}`}
+                          >
+                            <Share2 className="h-3.5 w-3.5" />
+                            Plus...
+                          </button>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -682,6 +865,24 @@ export function ContentCard({
                 exit={{ height: 0, opacity: 0 }}
                 className="mt-3 pt-3 border-t overflow-hidden"
               >
+                {replyingTo && (
+                  <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-lg bg-accent/10 text-xs">
+                    <Reply className="h-3 w-3 text-accent" />
+                    <span className="text-muted-foreground">Réponse à</span>
+                    <span className="font-semibold text-accent">{replyingTo.authorName}</span>
+                    <button
+                      onClick={() => {
+                        setReplyingTo(null);
+                        setCommentText("");
+                      }}
+                      className="ml-auto text-muted-foreground"
+                      data-testid="button-cancel-reply"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+
                 <form
                   onSubmit={handleSubmitComment}
                   className="flex items-center gap-2 mb-3"
@@ -689,7 +890,7 @@ export function ContentCard({
                   <Input
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Ajouter un commentaire..."
+                    placeholder={replyingTo ? `Répondre à ${replyingTo.authorName}...` : "Ajouter un commentaire..."}
                     className="flex-1 text-sm"
                     maxLength={500}
                     data-testid={`input-comment-${content.id}`}
@@ -704,7 +905,7 @@ export function ContentCard({
                   </Button>
                 </form>
 
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   {!comments ? (
                     <div className="text-center py-3">
                       <div className="h-4 w-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin mx-auto" />
@@ -715,37 +916,13 @@ export function ContentCard({
                     </p>
                   ) : (
                     comments.map((comment) => (
-                      <div
+                      <CommentItem
                         key={comment.id}
-                        className="flex gap-2 p-2 rounded-lg bg-muted/30"
-                        data-testid={`comment-${comment.id}`}
-                      >
-                        <Avatar className="h-7 w-7 flex-shrink-0">
-                          <AvatarFallback className="text-xs gradient-stem text-white">
-                            {comment.authorName.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold truncate">{comment.authorName}</span>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              <span className="text-[10px] text-muted-foreground">
-                                {formatDate(comment.createdAt)}
-                              </span>
-                              {comment.userId === userId && (
-                                <button
-                                  onClick={() => deleteCommentMutation.mutate(comment.id)}
-                                  className="text-muted-foreground/50 hover:text-destructive transition-colors"
-                                  data-testid={`button-delete-comment-${comment.id}`}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-snug">{comment.text}</p>
-                        </div>
-                      </div>
+                        comment={comment}
+                        contentId={content.id}
+                        userId={userId}
+                        onReply={handleReply}
+                      />
                     ))
                   )}
                 </div>

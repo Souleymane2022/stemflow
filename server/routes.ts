@@ -82,6 +82,7 @@ const submitQuizSchema = z.object({
 
 const createCommentSchema = z.object({
   text: z.string().min(1).max(500),
+  parentId: z.string().optional(),
 });
 
 export async function registerRoutes(
@@ -309,7 +310,18 @@ export async function registerRoutes(
   app.get("/api/content/:id/comments", requireAuth, async (req, res) => {
     try {
       const comments = await storage.getComments(req.params.id);
-      res.json(comments);
+      const userId = req.session.userId!;
+      const commentsWithMeta = await Promise.all(
+        comments.map(async (c) => {
+          const replies = await storage.getReplies(c.id);
+          return {
+            ...c,
+            userLiked: await storage.hasUserLikedComment(c.id, userId),
+            replyCount: replies.length,
+          };
+        })
+      );
+      res.json(commentsWithMeta);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch comments" });
     }
@@ -330,11 +342,37 @@ export async function registerRoutes(
         userId: user.id,
         authorName: user.username,
         contentId: req.params.id,
+        parentId: validation.data.parentId || null,
         createdAt: new Date().toISOString(),
       });
       res.json(comment);
     } catch (error) {
       res.status(500).json({ error: "Failed to create comment" });
+    }
+  });
+
+  app.get("/api/comments/:id/replies", requireAuth, async (req, res) => {
+    try {
+      const replies = await storage.getReplies(req.params.id);
+      const userId = req.session.userId!;
+      const repliesWithLikes = await Promise.all(
+        replies.map(async (r) => ({
+          ...r,
+          userLiked: await storage.hasUserLikedComment(r.id, userId),
+        }))
+      );
+      res.json(repliesWithLikes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch replies" });
+    }
+  });
+
+  app.post("/api/comments/:id/like", requireAuth, async (req, res) => {
+    try {
+      const result = await storage.toggleCommentLike(req.params.id, req.session.userId!);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to like comment" });
     }
   });
 

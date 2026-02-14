@@ -37,9 +37,12 @@ export interface IStorage {
   getUserQuizAttempts(userId: string): Promise<QuizAttempt[]>;
 
   getComments(contentId: string): Promise<Comment[]>;
+  getReplies(parentId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
   deleteComment(commentId: string, userId: string): Promise<boolean>;
-  likeComment(id: string): Promise<void>;
+  toggleCommentLike(commentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+  hasUserLikedComment(commentId: string, userId: string): Promise<boolean>;
+  getCommentById(commentId: string): Promise<Comment | undefined>;
 
   getAllBadges(): Promise<Badge[]>;
   getUserBadges(userId: string): Promise<UserBadge[]>;
@@ -87,6 +90,7 @@ export class MemStorage implements IStorage {
   private badges: Map<string, Badge>;
   private userBadges: Map<string, UserBadge>;
   private contentLikes: Map<string, Set<string>>;
+  private commentLikes: Map<string, Set<string>>;
   private follows: Map<string, Follow>;
   private activities: Map<string, Activity>;
 
@@ -104,6 +108,7 @@ export class MemStorage implements IStorage {
     this.badges = new Map();
     this.userBadges = new Map();
     this.contentLikes = new Map();
+    this.commentLikes = new Map();
     this.follows = new Map();
     this.activities = new Map();
 
@@ -227,9 +232,12 @@ export class MemStorage implements IStorage {
     leaderboardUsers.forEach((u) => this.users.set(u.id, u));
 
     const seedComments: Comment[] = [
-      { id: "comment-1", contentId: "content-1", userId: "lb-user-1", authorName: "Dr. Marie Curie", text: "Excellent contenu ! Les trous noirs sont fascinants.", likes: 5, createdAt: new Date(Date.now() - 3600000).toISOString() },
-      { id: "comment-2", contentId: "content-2", userId: "lb-user-2", authorName: "Alan Turing", text: "Bonne introduction à l'IA. J'aurais ajouté un mot sur le deep learning.", likes: 3, createdAt: new Date(Date.now() - 7200000).toISOString() },
-      { id: "comment-3", contentId: "content-1", userId: "lb-user-3", authorName: "Ada Lovelace", text: "Très bien expliqué, merci pour ce partage !", likes: 2, createdAt: new Date(Date.now() - 1800000).toISOString() },
+      { id: "comment-1", contentId: "content-1", userId: "lb-user-1", authorName: "Dr. Marie Curie", text: "Excellent contenu ! Les trous noirs sont fascinants.", parentId: null, likes: 5, createdAt: new Date(Date.now() - 3600000).toISOString() },
+      { id: "comment-2", contentId: "content-2", userId: "lb-user-2", authorName: "Alan Turing", text: "Bonne introduction à l'IA. J'aurais ajouté un mot sur le deep learning.", parentId: null, likes: 3, createdAt: new Date(Date.now() - 7200000).toISOString() },
+      { id: "comment-3", contentId: "content-1", userId: "lb-user-3", authorName: "Ada Lovelace", text: "Très bien expliqué, merci pour ce partage !", parentId: null, likes: 2, createdAt: new Date(Date.now() - 1800000).toISOString() },
+      { id: "comment-4", contentId: "content-1", userId: "lb-user-2", authorName: "Alan Turing", text: "Tout à fait d'accord ! La singularité est le concept le plus intrigant.", parentId: "comment-1", likes: 1, createdAt: new Date(Date.now() - 3000000).toISOString() },
+      { id: "comment-5", contentId: "content-1", userId: "lb-user-4", authorName: "Pierre Fermat", text: "Les maths derrière la relativité générale sont magnifiques.", parentId: "comment-1", likes: 3, createdAt: new Date(Date.now() - 2400000).toISOString() },
+      { id: "comment-6", contentId: "content-2", userId: "lb-user-5", authorName: "Nikola Tesla", text: "Le deep learning est effectivement crucial pour comprendre l'IA moderne.", parentId: "comment-2", likes: 2, createdAt: new Date(Date.now() - 6000000).toISOString() },
     ];
     seedComments.forEach((c) => this.comments.set(c.id, c));
 
@@ -443,8 +451,18 @@ export class MemStorage implements IStorage {
 
   async getComments(contentId: string): Promise<Comment[]> {
     return Array.from(this.comments.values())
-      .filter((c) => c.contentId === contentId)
+      .filter((c) => c.contentId === contentId && !c.parentId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getReplies(parentId: string): Promise<Comment[]> {
+    return Array.from(this.comments.values())
+      .filter((c) => c.parentId === parentId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  async getCommentById(commentId: string): Promise<Comment | undefined> {
+    return this.comments.get(commentId);
   }
 
   async createComment(comment: InsertComment): Promise<Comment> {
@@ -452,6 +470,7 @@ export class MemStorage implements IStorage {
     const newComment: Comment = {
       ...comment,
       id,
+      parentId: comment.parentId || null,
       likes: 0,
       createdAt: comment.createdAt || new Date().toISOString(),
     };
@@ -464,17 +483,36 @@ export class MemStorage implements IStorage {
     const comment = this.comments.get(commentId);
     if (!comment) return false;
     if (comment.userId !== userId) return false;
+    const replies = Array.from(this.comments.values()).filter((c) => c.parentId === commentId);
+    for (const reply of replies) {
+      this.comments.delete(reply.id);
+      await this.decrementCommentCount(reply.contentId);
+    }
     this.comments.delete(commentId);
     await this.decrementCommentCount(comment.contentId);
     return true;
   }
 
-  async likeComment(id: string): Promise<void> {
-    const comment = this.comments.get(id);
-    if (comment) {
-      comment.likes = (comment.likes ?? 0) + 1;
-      this.comments.set(id, comment);
+  async toggleCommentLike(commentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const comment = this.comments.get(commentId);
+    if (!comment) return { liked: false, likeCount: 0 };
+    if (!this.commentLikes.has(commentId)) {
+      this.commentLikes.set(commentId, new Set());
     }
+    const likes = this.commentLikes.get(commentId)!;
+    if (likes.has(userId)) {
+      likes.delete(userId);
+      comment.likes = Math.max(0, (comment.likes ?? 0) - 1);
+    } else {
+      likes.add(userId);
+      comment.likes = (comment.likes ?? 0) + 1;
+    }
+    this.comments.set(commentId, comment);
+    return { liked: likes.has(userId), likeCount: comment.likes ?? 0 };
+  }
+
+  async hasUserLikedComment(commentId: string, userId: string): Promise<boolean> {
+    return this.commentLikes.get(commentId)?.has(userId) ?? false;
   }
 
   async getAllBadges(): Promise<Badge[]> {

@@ -101,6 +101,19 @@ shared/
 - Category filtering: Science, Technology, Engineering, Mathematics
 - Difficulty levels: Débutant, Intermédiaire, Avancé
 - XP rewards per content
+- 24 STEM micro-contents from YouTube (TED-Ed, Khan Academy, Kurzgesagt), Vimeo (NISE Network), Archive.org (MIT OCW)
+- 41 quiz questions across all content
+
+### 2b. Social Interactions
+- Like/unlike posts with animated heart and toggle
+- Threaded comments with replies (parentId support)
+- Comment likes (toggle per user)
+- Reply indicator UI with @mention
+- Share to 5 platforms: Facebook, X/Twitter, WhatsApp, Instagram, LinkedIn
+- Copy link to clipboard
+- Native Web Share API support
+- Bookmark/save posts
+- API: POST /api/comments/:id/like, GET /api/comments/:id/replies
 
 ### 3. Community Rooms (Salons)
 - Public/private rooms by category
