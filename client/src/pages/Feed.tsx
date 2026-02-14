@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ContentCard } from "@/components/feed/ContentCard";
 import { StemFlowLogo } from "@/components/StemFlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNav } from "@/components/BottomNav";
 import { useUserState } from "@/lib/userState";
@@ -22,6 +23,7 @@ import {
   Zap,
   Brain,
   Sparkles,
+  ChevronUp,
 } from "lucide-react";
 import type { Content } from "@shared/schema";
 
@@ -33,28 +35,91 @@ const categories = [
   { value: "mathematics", label: "Maths", icon: Calculator },
 ];
 
-function FeedContentItem({ content, index, onView, onJoinRoom, showLearnScore }: {
+function FeedContentItem({ content, index, onView, onJoinRoom, showLearnScore, observerRef }: {
   content: Content;
   index: number;
   onView: (id: string) => void;
   onJoinRoom: () => void;
   showLearnScore: boolean;
+  observerRef: (el: HTMLDivElement | null) => void;
 }) {
   useEffect(() => {
     onView(content.id);
   }, [content.id]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
+    <div
+      ref={observerRef}
+      className="snap-feed-item flex flex-col"
+      style={{ height: "calc(100vh - 90px - 60px)", minHeight: "calc(100vh - 90px - 60px)" }}
+      data-index={index}
     >
-      <ContentCard
-        content={content}
-        onJoinRoom={onJoinRoom}
-        showLearnScore={showLearnScore}
-      />
+      <div className="flex-1 overflow-y-auto p-3 flex items-start justify-center">
+        <motion.div
+          className="w-full max-w-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: Math.min(index * 0.05, 0.2), duration: 0.25 }}
+        >
+          <ContentCard
+            content={content}
+            onJoinRoom={onJoinRoom}
+            showLearnScore={showLearnScore}
+          />
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function ProgressDots({ total, current }: { total: number; current: number }) {
+  if (total <= 1) return null;
+  const maxVisible = 7;
+  let startIdx = 0;
+  if (total > maxVisible) {
+    startIdx = Math.max(0, Math.min(current - Math.floor(maxVisible / 2), total - maxVisible));
+  }
+  const visibleCount = Math.min(total, maxVisible);
+
+  return (
+    <div
+      className="fixed right-2 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1.5"
+      data-testid="progress-dots"
+    >
+      {Array.from({ length: visibleCount }).map((_, i) => {
+        const actualIndex = startIdx + i;
+        const isActive = actualIndex === current;
+        const distance = Math.abs(actualIndex - current);
+        return (
+          <div
+            key={actualIndex}
+            className={`rounded-full transition-all duration-300 ${
+              isActive
+                ? "w-2 h-2 bg-accent shadow-sm"
+                : distance <= 1
+                  ? "w-1.5 h-1.5 bg-muted-foreground/40"
+                  : "w-1 h-1 bg-muted-foreground/20"
+            }`}
+            data-testid={`progress-dot-${actualIndex}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function SwipeUpIndicator({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <motion.div
+      className="absolute bottom-20 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1 pointer-events-none"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: [1, 0.6, 1], y: [0, -6, 0] }}
+      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+      data-testid="swipe-up-indicator"
+    >
+      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+      <span className="text-[10px] text-muted-foreground font-medium">Swipe</span>
     </motion.div>
   );
 }
@@ -69,10 +134,58 @@ export default function Feed() {
   const [smartFeed, setSmartFeed] = useState(false);
   const [smartExplanation, setSmartExplanation] = useState("");
   const viewTrackedRef = useRef(new Set<string>());
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     generateDailyQuests();
     checkWeekReset();
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.getAttribute("data-index"));
+            if (!isNaN(idx)) {
+              setCurrentIndex(idx);
+            }
+          }
+        }
+      },
+      {
+        root: containerRef.current,
+        threshold: 0.6,
+      }
+    );
+
+    const items = itemRefs.current;
+    items.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [itemRefs.current.size]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      if (!hasScrolled && container.scrollTop > 20) {
+        setHasScrolled(true);
+      }
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [hasScrolled]);
+
+  const setItemRef = useCallback((index: number) => (el: HTMLDivElement | null) => {
+    if (el) {
+      itemRefs.current.set(index, el);
+    } else {
+      itemRefs.current.delete(index);
+    }
   }, []);
 
   const trackContentView = useCallback((contentId: string) => {
@@ -119,7 +232,7 @@ export default function Feed() {
       );
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background" data-testid="feed-page">
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between gap-3 p-3 px-4">
           <StemFlowLogo size="sm" showText={false} />
@@ -132,6 +245,7 @@ export default function Feed() {
               <Zap className="h-3.5 w-3.5 text-accent" />
               <span className="text-xs font-bold text-accent">{xp}</span>
             </div>
+            <NotificationBell />
             <ThemeToggle />
           </div>
         </div>
@@ -181,9 +295,14 @@ export default function Feed() {
         </div>
       )}
 
-      <main className="p-4 space-y-5 max-w-lg mx-auto">
+      <div
+        ref={containerRef}
+        className="snap-feed-container relative"
+        style={{ height: "calc(100vh - 90px - 60px)" }}
+        data-testid="snap-feed-container"
+      >
         {(isLoading || smartFeedMutation.isPending) ? (
-          <>
+          <div className="p-4 space-y-5 max-w-lg mx-auto">
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-3 p-4 rounded-xl bg-card border">
                 <div className="flex items-center gap-3">
@@ -197,18 +316,23 @@ export default function Feed() {
                 <Skeleton className="h-4 w-3/4" />
               </div>
             ))}
-          </>
+          </div>
         ) : displayContents && displayContents.length > 0 ? (
-          displayContents.map((content: Content, index: number) => (
-            <FeedContentItem
-              key={content.id}
-              content={content}
-              index={index}
-              onView={trackContentView}
-              onJoinRoom={() => setLocation(`/rooms/${content.roomId}`)}
-              showLearnScore={smartFeed}
-            />
-          ))
+          <>
+            {displayContents.map((content: Content, index: number) => (
+              <FeedContentItem
+                key={content.id}
+                content={content}
+                index={index}
+                onView={trackContentView}
+                onJoinRoom={() => setLocation(`/rooms/${content.roomId}`)}
+                showLearnScore={smartFeed}
+                observerRef={setItemRef(index)}
+              />
+            ))}
+            <ProgressDots total={displayContents.length} current={currentIndex} />
+            <SwipeUpIndicator visible={!hasScrolled} />
+          </>
         ) : (
           <div className="text-center py-12">
             <div className="inline-flex p-4 rounded-full bg-muted mb-4">
@@ -220,7 +344,7 @@ export default function Feed() {
             </p>
           </div>
         )}
-      </main>
+      </div>
 
       <BottomNav />
     </div>

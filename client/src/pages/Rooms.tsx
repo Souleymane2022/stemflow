@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { StemFlowLogo } from "@/components/StemFlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,7 @@ export default function Rooms() {
               <Zap className="h-3.5 w-3.5 text-accent" />
               <span className="text-xs font-bold text-accent">{xp}</span>
             </div>
+            <NotificationBell />
             <ThemeToggle />
           </div>
         </div>

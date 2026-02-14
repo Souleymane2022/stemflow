@@ -24,6 +24,7 @@ import Auth from "@/pages/Auth";
 import Achievements from "@/pages/Achievements";
 import Community from "@/pages/Community";
 import UserProfile from "@/pages/UserProfile";
+import Dashboard from "@/pages/Dashboard";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, setUser, logout } = useUserState();
@@ -89,6 +90,7 @@ function Router() {
       <Route path="/achievements" component={Achievements} />
       <Route path="/assistant" component={AIAssistant} />
       <Route path="/community" component={Community} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/user/:id" component={UserProfile} />
       <Route component={NotFound} />
     </Switch>

@@ -531,6 +531,47 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/rooms/:id/posts", requireAuth, async (req, res) => {
+    try {
+      const posts = await storage.getRoomPosts(req.params.id);
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch room posts" });
+    }
+  });
+
+  app.post("/api/rooms/:id/posts", requireAuth, async (req, res) => {
+    try {
+      const textSchema = z.object({ text: z.string().min(1).max(1000) });
+      const validation = textSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
+      }
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      const post = await storage.createRoomPost({
+        roomId: req.params.id,
+        userId: user.id,
+        username: user.username,
+        text: validation.data.text,
+      });
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create room post" });
+    }
+  });
+
+  app.post("/api/room-posts/:id/like", requireAuth, async (req, res) => {
+    try {
+      const result = await storage.likeRoomPost(req.params.id, req.session.userId!);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to like room post" });
+    }
+  });
+
   app.get("/api/rooms/:id/content", requireAuth, async (req, res) => {
     try {
       const content = await storage.getContentByRoom(req.params.id);
@@ -887,6 +928,85 @@ export async function registerRoutes(
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to calculate LearnScore" });
+    }
+  });
+
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      const notifications = await storage.getNotifications(req.session.userId!);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", requireAuth, async (req, res) => {
+    try {
+      const count = await storage.getUnreadNotificationCount(req.session.userId!);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unread count" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      await storage.markNotificationRead(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to mark notification read" });
+    }
+  });
+
+  app.patch("/api/notifications/read-all", requireAuth, async (req, res) => {
+    try {
+      await storage.markAllNotificationsRead(req.session.userId!);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to mark all notifications read" });
+    }
+  });
+
+  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      const userContent = await storage.getContentByAuthor(userId);
+      const quizAttempts = await storage.getUserQuizAttempts(userId);
+      const allContent = await storage.getAllContent();
+      const missions = await storage.getUserMissions(userId);
+      const badges = await storage.getUserBadges(userId);
+
+      const completedMissions = missions.filter(m => m.completed).length;
+      const totalQuizzes = quizAttempts.length;
+      const avgQuizScore = totalQuizzes > 0
+        ? Math.round(quizAttempts.reduce((sum, a) => sum + (a.score / a.totalQuestions) * 100, 0) / totalQuizzes)
+        : 0;
+      const perfectQuizzes = quizAttempts.filter(a => a.score === a.totalQuestions).length;
+
+      const categoryBreakdown = { science: 0, technology: 0, engineering: 0, mathematics: 0 };
+      userContent.forEach(c => {
+        if (categoryBreakdown[c.category as keyof typeof categoryBreakdown] !== undefined) {
+          categoryBreakdown[c.category as keyof typeof categoryBreakdown]++;
+        }
+      });
+
+      res.json({
+        xp: user?.xp || 0,
+        streak: user?.streak || 0,
+        level: user?.level || "curieux",
+        contentCreated: userContent.length,
+        totalQuizzes,
+        avgQuizScore,
+        perfectQuizzes,
+        completedMissions,
+        totalMissions: missions.length,
+        badgesEarned: badges.length,
+        totalContentAvailable: allContent.length,
+        categoryBreakdown,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch dashboard stats" });
     }
   });
 

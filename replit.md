@@ -96,7 +96,11 @@ shared/
 - STEM interests (minimum 1 required)
 - Starting level (Curieux → Mentor)
 
-### 2. Content Feed
+### 2. Content Feed (TikTok-style)
+- **TikTok-style snap scrolling**: Full-screen vertical snap scroll with CSS scroll-snap
+- IntersectionObserver tracking for current card detection
+- Progress dots indicator (right side, max 7 visible)
+- Swipe-up indicator on first load
 - Multi-format content: video, text_post, image_post, quiz, infographic
 - Category filtering: Science, Technology, Engineering, Mathematics
 - Difficulty levels: Débutant, Intermédiaire, Avancé
@@ -119,6 +123,9 @@ shared/
 - Public/private rooms by category
 - Roles: Apprenant, Challenger, Mentor, Modérateur
 - Publications, challenges, and leaderboards
+- **Live Room Discussions**: Real-time posts/comments within rooms
+- Room post likes with toggle support
+- API: GET/POST /api/rooms/:id/posts, POST /api/room-posts/:id/like
 
 ### 4. Missions/Gamification
 - Mission types: watch_videos, complete_quiz, join_salon, comment, share, streak
@@ -159,6 +166,23 @@ shared/
 - Triggers: XP gains, level ups, mission/quest completion, streak milestones, badge earned, league promotion
 - Library: client/src/lib/celebrations.ts
 
+### 10. Analytics Dashboard (/dashboard)
+- Stats cards: XP, Streak, Level, Content Created, Quiz Score, Badges
+- Category breakdown with progress bars (Science, Technology, Engineering, Mathematics)
+- Mission progress with circular SVG indicator
+- Quiz performance metrics (avg score, perfect quizzes)
+- Weekly activity bar chart visualization
+- Learning tips section
+- API: GET /api/dashboard/stats
+
+### 11. Notification System
+- Bell icon in page headers with unread count badge
+- Notification types: level_up, badge_earned, mission_complete, new_follower, xp_gained, streak_milestone, room_activity
+- Mark individual or all as read
+- Auto-refresh unread count every 30 seconds
+- Component: client/src/components/NotificationBell.tsx
+- API: GET /api/notifications, GET /api/notifications/unread-count, PATCH /api/notifications/:id/read, PATCH /api/notifications/read-all
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -182,6 +206,14 @@ shared/
 | POST | `/api/ai/smart-profile` | AI smart profile evolution analysis |
 | POST | `/api/ai/assistant` | AI STEM tutoring assistant chat |
 | GET | `/api/ai/learnscore/:contentId` | Calculate LearnScore for content |
+| GET | `/api/rooms/:id/posts` | Get room discussion posts |
+| POST | `/api/rooms/:id/posts` | Create room discussion post |
+| POST | `/api/room-posts/:id/like` | Like/unlike room post |
+| GET | `/api/dashboard/stats` | Get user dashboard statistics |
+| GET | `/api/notifications` | Get user notifications |
+| GET | `/api/notifications/unread-count` | Get unread notification count |
+| PATCH | `/api/notifications/:id/read` | Mark notification as read |
+| PATCH | `/api/notifications/read-all` | Mark all notifications as read |
 
 ## Gradient Utilities
 

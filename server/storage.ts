@@ -8,6 +8,26 @@ import type {
   Follow, Activity
 } from "@shared/schema";
 
+export interface RoomPost {
+  id: string;
+  roomId: string;
+  userId: string;
+  username: string;
+  text: string;
+  likes: number;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "level_up" | "badge_earned" | "mission_complete" | "new_follower" | "xp_gained" | "streak_milestone" | "room_activity";
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -64,6 +84,10 @@ export interface IStorage {
   getEngagementStats(userId: string): Promise<EngagementStats | undefined>;
   trackVideoEngagement(engagement: Omit<VideoEngagement, 'id'>): Promise<VideoEngagement>;
 
+  getRoomPosts(roomId: string): Promise<RoomPost[]>;
+  createRoomPost(post: Omit<RoomPost, 'id' | 'likes' | 'createdAt'>): Promise<RoomPost>;
+  likeRoomPost(postId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+
   followUser(followerId: string, followingId: string): Promise<void>;
   unfollowUser(followerId: string, followingId: string): Promise<void>;
   getFollowers(userId: string): Promise<string[]>;
@@ -74,6 +98,12 @@ export interface IStorage {
   getActivitiesByUser(userId: string): Promise<Activity[]>;
   getActivitiesFeed(userIds: string[]): Promise<Activity[]>;
   searchUsers(query: string): Promise<User[]>;
+
+  getNotifications(userId: string): Promise<Notification[]>;
+  createNotification(notif: Omit<Notification, "id" | "read" | "createdAt">): Promise<Notification>;
+  markNotificationRead(id: string): Promise<void>;
+  markAllNotificationsRead(userId: string): Promise<void>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
@@ -93,6 +123,9 @@ export class MemStorage implements IStorage {
   private commentLikes: Map<string, Set<string>>;
   private follows: Map<string, Follow>;
   private activities: Map<string, Activity>;
+  private notifications: Map<string, Notification>;
+  private roomPosts: Map<string, RoomPost>;
+  private roomPostLikes: Map<string, Set<string>>;
 
   constructor() {
     this.users = new Map();
@@ -111,6 +144,9 @@ export class MemStorage implements IStorage {
     this.commentLikes = new Map();
     this.follows = new Map();
     this.activities = new Map();
+    this.notifications = new Map();
+    this.roomPosts = new Map();
+    this.roomPostLikes = new Map();
 
     this.seedData();
   }
@@ -254,6 +290,25 @@ export class MemStorage implements IStorage {
       { id: "act-10", userId: "lb-user-5", username: "Nikola Tesla", activityType: "room_joined", description: "a rejoint le salon Ingenieurs en herbe", metadata: null, createdAt: new Date(Date.now() - 32400000).toISOString() },
     ];
     seedActivities.forEach((a) => this.activities.set(a.id, a));
+
+    const seedRoomPosts: RoomPost[] = [
+      { id: "rp-1", roomId: "room-1", userId: "lb-user-1", username: "Dr. Marie Curie", text: "Qui a vu le dernier documentaire sur les trous noirs ? Les images du James Webb sont incroyables !", likes: 12, createdAt: new Date(Date.now() - 1800000).toISOString() },
+      { id: "rp-2", roomId: "room-1", userId: "lb-user-4", username: "Pierre Fermat", text: "Je recommande le livre 'Cosmos' de Carl Sagan pour comprendre les bases de l'astrophysique. Un classique !", likes: 8, createdAt: new Date(Date.now() - 5400000).toISOString() },
+      { id: "rp-3", roomId: "room-1", userId: "lb-user-3", username: "Ada Lovelace", text: "Est-ce que quelqu'un peut m'expliquer la difference entre fusion et fission nucleaire ? Je prepare un expose.", likes: 5, createdAt: new Date(Date.now() - 10800000).toISOString() },
+      { id: "rp-4", roomId: "room-2", userId: "lb-user-2", username: "Alan Turing", text: "Je viens de terminer mon premier projet avec React et Node.js. Le full-stack, c'est passionnant !", likes: 15, createdAt: new Date(Date.now() - 3600000).toISOString() },
+      { id: "rp-5", roomId: "room-2", userId: "lb-user-5", username: "Nikola Tesla", text: "Quelqu'un a deja utilise un Raspberry Pi pour un projet IoT ? Je cherche des idees pour debuter.", likes: 9, createdAt: new Date(Date.now() - 7200000).toISOString() },
+      { id: "rp-6", roomId: "room-2", userId: "lb-user-3", username: "Ada Lovelace", text: "L'IA generative va revolutionner la facon dont on apprend. Qu'en pensez-vous ?", likes: 11, createdAt: new Date(Date.now() - 14400000).toISOString() },
+      { id: "rp-7", roomId: "room-1", userId: "lb-user-5", username: "Nikola Tesla", text: "La physique quantique me fascine. Avez-vous des ressources pour les debutants ?", likes: 7, createdAt: new Date(Date.now() - 21600000).toISOString() },
+    ];
+    seedRoomPosts.forEach((p) => this.roomPosts.set(p.id, p));
+
+    const seedNotifications: Notification[] = [
+      { id: "notif-1", userId: "user-1", type: "xp_gained", title: "Bienvenue sur STEM FLOW !", message: "Tu as gagné 50 XP de bienvenue. Commence ton aventure STEM !", read: false, createdAt: new Date(Date.now() - 600000).toISOString() },
+      { id: "notif-2", userId: "user-1", type: "badge_earned", title: "Nouveau badge: Explorateur", message: "Tu as débloqué le badge Explorateur. Continue comme ça !", read: false, createdAt: new Date(Date.now() - 1800000).toISOString() },
+      { id: "notif-3", userId: "user-1", type: "level_up", title: "Tu es maintenant niveau Curieux", message: "Félicitations ! Tu as atteint le niveau Curieux.", read: false, createdAt: new Date(Date.now() - 3600000).toISOString() },
+      { id: "notif-4", userId: "user-1", type: "streak_milestone", title: "3 jours de streak!", message: "Tu es connecté 3 jours de suite. Continue pour débloquer des récompenses !", read: false, createdAt: new Date(Date.now() - 7200000).toISOString() },
+    ];
+    seedNotifications.forEach((n) => this.notifications.set(n.id, n));
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -709,6 +764,81 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values())
       .filter((u) => u.username.toLowerCase().includes(lowerQuery))
       .slice(0, 20);
+  }
+
+  async getRoomPosts(roomId: string): Promise<RoomPost[]> {
+    return Array.from(this.roomPosts.values())
+      .filter((p) => p.roomId === roomId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createRoomPost(post: Omit<RoomPost, 'id' | 'likes' | 'createdAt'>): Promise<RoomPost> {
+    const id = randomUUID();
+    const newPost: RoomPost = {
+      ...post,
+      id,
+      likes: 0,
+      createdAt: new Date().toISOString(),
+    };
+    this.roomPosts.set(id, newPost);
+    return newPost;
+  }
+
+  async likeRoomPost(postId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const post = this.roomPosts.get(postId);
+    if (!post) return { liked: false, likeCount: 0 };
+    if (!this.roomPostLikes.has(postId)) {
+      this.roomPostLikes.set(postId, new Set());
+    }
+    const likes = this.roomPostLikes.get(postId)!;
+    if (likes.has(userId)) {
+      likes.delete(userId);
+      post.likes = Math.max(0, post.likes - 1);
+    } else {
+      likes.add(userId);
+      post.likes = post.likes + 1;
+    }
+    this.roomPosts.set(postId, post);
+    return { liked: likes.has(userId), likeCount: post.likes };
+  }
+
+  async getNotifications(userId: string): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter((n) => n.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createNotification(notif: Omit<Notification, "id" | "read" | "createdAt">): Promise<Notification> {
+    const id = randomUUID();
+    const notification: Notification = {
+      ...notif,
+      id,
+      read: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.notifications.set(id, notification);
+    return notification;
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    const notif = this.notifications.get(id);
+    if (notif) {
+      this.notifications.set(id, { ...notif, read: true });
+    }
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    for (const [id, notif] of this.notifications) {
+      if (notif.userId === userId && !notif.read) {
+        this.notifications.set(id, { ...notif, read: true });
+      }
+    }
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    return Array.from(this.notifications.values())
+      .filter((n) => n.userId === userId && !n.read)
+      .length;
   }
 }
 

@@ -1,7 +1,6 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { useUserState } from "@/lib/userState";
 import { useDailyQuests } from "@/lib/dailyQuests";
 import { useLeagueState } from "@/lib/leagues";
 import { celebrateMissionComplete } from "@/lib/celebrations";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   ArrowLeft,
   Users,
@@ -21,17 +22,26 @@ import {
   Trophy,
   Swords,
   Zap,
-  Flame,
   Lightbulb,
   Cpu,
   Wrench,
   Calculator,
-  Crown,
   Star,
   Send,
-  Plus,
+  Heart,
+  Clock,
 } from "lucide-react";
 import type { Room, Content } from "@shared/schema";
+
+interface RoomPost {
+  id: string;
+  roomId: string;
+  userId: string;
+  username: string;
+  text: string;
+  likes: number;
+  createdAt: string;
+}
 
 const categoryIcons = {
   science: Lightbulb,
@@ -54,13 +64,25 @@ const roleLabels = {
   moderateur: { label: "Modérateur", color: "bg-red-500/20 text-red-600 dark:text-red-400" },
 };
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "maintenant";
+  if (minutes < 60) return `il y a ${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `il y a ${days}j`;
+}
+
 export default function RoomDetail() {
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
-  const { xp, streak, addXp } = useUserState();
+  const { xp, streak, addXp, userId, user } = useUserState();
   const { toast } = useToast();
   const { generateDailyQuests, updateQuestProgress } = useDailyQuests();
   const { addWeeklyXp } = useLeagueState();
+  const [postText, setPostText] = useState("");
 
   useEffect(() => {
     generateDailyQuests();
@@ -92,6 +114,66 @@ export default function RoomDetail() {
     },
     enabled: !!params.id,
   });
+
+  const { data: roomPosts, isLoading: postsLoading } = useQuery<RoomPost[]>({
+    queryKey: ["/api/rooms", params.id, "posts"],
+    queryFn: async () => {
+      const res = await fetch(`/api/rooms/${params.id}/posts`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch room posts");
+      return res.json();
+    },
+    enabled: !!params.id,
+  });
+
+  const createPostMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const res = await apiRequest("POST", `/api/rooms/${params.id}/posts`, { text });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/rooms", params.id, "posts"] });
+      setPostText("");
+      toast({ title: "Publication envoyée !" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de publier le message", variant: "destructive" });
+    },
+  });
+
+  const likePostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const res = await apiRequest("POST", `/api/room-posts/${postId}/like`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/rooms", params.id, "posts"] });
+    },
+  });
+
+  const joinRoomMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/rooms/${params.id}/join`, {
+        userId: userId,
+        role: "apprenant",
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/rooms", params.id] });
+      toast({ title: "Bienvenue !", description: "Tu as rejoint le salon avec succes." });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de rejoindre le salon", variant: "destructive" });
+    },
+  });
+
+  const handleSubmitPost = () => {
+    if (postText.trim()) {
+      createPostMutation.mutate(postText.trim());
+    }
+  };
+
+  const quizContent = roomContent?.find((c) => c.contentType === "quiz");
 
   if (isLoading) {
     return (
@@ -125,7 +207,6 @@ export default function RoomDetail() {
   const CategoryIcon = categoryIcons[room.category];
   const gradientColor = categoryColors[room.category];
 
-  // Mock leaderboard data
   const leaderboard = [
     { name: "Marie L.", xp: 2450, role: "mentor" },
     { name: "Thomas R.", xp: 1820, role: "challenger" },
@@ -136,7 +217,6 @@ export default function RoomDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center gap-4 p-4">
           <Button
@@ -161,11 +241,10 @@ export default function RoomDetail() {
         </div>
       </header>
 
-      {/* Room Banner */}
       <div className={`h-32 bg-gradient-to-br ${gradientColor} relative`}>
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute bottom-4 left-4 flex items-center gap-3">
-          <div className="p-3 rounded-lg bg-white/20 backdrop-blur-sm">
+          <div className="p-3 rounded-md bg-white/20 backdrop-blur-sm">
             <CategoryIcon className="h-8 w-8 text-white" />
           </div>
           <div className="text-white">
@@ -177,16 +256,19 @@ export default function RoomDetail() {
         </div>
       </div>
 
-      {/* Room Description */}
       <div className="p-4 border-b">
         <p className="text-muted-foreground">{room.description}</p>
-        <Button className="w-full mt-4 gradient-stem text-white" data-testid="button-join-room">
+        <Button
+          className="w-full mt-4 gradient-stem text-white"
+          data-testid="button-join-room"
+          onClick={() => joinRoomMutation.mutate()}
+          disabled={joinRoomMutation.isPending}
+        >
           <Users className="h-4 w-4 mr-2" />
-          Rejoindre le salon
+          {joinRoomMutation.isPending ? "Rejoindre..." : "Rejoindre le salon"}
         </Button>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="publications" className="p-4">
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="publications" data-testid="tab-publications">
@@ -204,19 +286,73 @@ export default function RoomDetail() {
         </TabsList>
 
         <TabsContent value="publications" className="mt-4 space-y-4">
-          {roomContent && roomContent.length > 0 ? (
-            roomContent.map((content) => (
-              <Card key={content.id} className="p-4">
+          <Card className="p-4">
+            <div className="flex items-start gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="gradient-stem text-white text-sm">
+                  {user?.username?.slice(0, 2).toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-2">
+                <Textarea
+                  placeholder="Partage une idée, une question..."
+                  value={postText}
+                  onChange={(e) => setPostText(e.target.value)}
+                  className="resize-none border-0 text-base focus-visible:ring-0"
+                  rows={2}
+                  data-testid="input-room-post"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmitPost}
+                    disabled={!postText.trim() || createPostMutation.isPending}
+                    data-testid="button-submit-post"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {createPostMutation.isPending ? "Envoi..." : "Publier"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {postsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-24 w-full rounded-md" />
+              ))}
+            </div>
+          ) : roomPosts && roomPosts.length > 0 ? (
+            roomPosts.map((post) => (
+              <Card key={post.id} className="p-4" data-testid={`room-post-${post.id}`}>
                 <div className="flex items-start gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="gradient-stem text-white text-sm">
-                      {content.authorName.slice(0, 2).toUpperCase()}
+                      {post.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <p className="font-semibold">{content.authorName}</p>
-                    <p className="text-sm text-muted-foreground mb-2">{content.title}</p>
-                    <p className="text-sm">{content.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold" data-testid={`text-username-${post.id}`}>{post.username}</p>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {timeAgo(post.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-1" data-testid={`text-post-${post.id}`}>{post.text}</p>
+                    <div className="flex items-center gap-4 mt-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => likePostMutation.mutate(post.id)}
+                        disabled={likePostMutation.isPending}
+                        data-testid={`button-like-post-${post.id}`}
+                        className="gap-1"
+                      >
+                        <Heart className="h-4 w-4" />
+                        <span data-testid={`text-likes-${post.id}`}>{post.likes}</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -225,13 +361,9 @@ export default function RoomDetail() {
             <Card className="p-8 text-center">
               <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-semibold mb-2">Pas encore de publications</h3>
-              <p className="text-muted-foreground text-sm mb-4">
+              <p className="text-muted-foreground text-sm">
                 Sois le premier à publier dans ce salon !
               </p>
-              <Button className="gradient-stem text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Créer une publication
-              </Button>
             </Card>
           )}
         </TabsContent>
@@ -239,7 +371,7 @@ export default function RoomDetail() {
         <TabsContent value="challenges" className="mt-4 space-y-4">
           <Card className="p-4">
             <div className="flex items-center gap-4 mb-3">
-              <div className="p-3 rounded-lg gradient-stem">
+              <div className="p-3 rounded-md gradient-stem">
                 <Swords className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1">
@@ -251,14 +383,20 @@ export default function RoomDetail() {
                 200 XP
               </Badge>
             </div>
-            <Button variant="outline" className="w-full">
-              Participer au défi
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-join-challenge"
+              onClick={() => joinRoomMutation.mutate()}
+              disabled={joinRoomMutation.isPending}
+            >
+              {joinRoomMutation.isPending ? "Participation..." : "Participer au défi"}
             </Button>
           </Card>
           
           <Card className="p-4">
             <div className="flex items-center gap-4 mb-3">
-              <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+              <div className="p-3 rounded-md bg-gradient-to-br from-purple-500 to-pink-500">
                 <Star className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1">
@@ -270,7 +408,18 @@ export default function RoomDetail() {
                 50 XP
               </Badge>
             </div>
-            <Button variant="outline" className="w-full">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-play-quiz"
+              onClick={() => {
+                if (quizContent) {
+                  setLocation(`/quiz/${quizContent.id}`);
+                } else {
+                  toast({ title: "Aucun quiz disponible", description: "Ce salon n'a pas encore de quiz." });
+                }
+              }}
+            >
               Jouer le quiz
             </Button>
           </Card>
@@ -288,7 +437,7 @@ export default function RoomDetail() {
                 return (
                   <div
                     key={user.name}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-muted/50"
+                    className="flex items-center gap-3 p-2 rounded-md bg-muted/50"
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
