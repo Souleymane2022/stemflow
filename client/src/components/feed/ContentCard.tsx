@@ -49,6 +49,11 @@ function getYouTubeId(url: string): string | null {
   return null;
 }
 
+function getVimeoId(url: string): string | null {
+  const m = url.match(/vimeo\.com\/(\d+)/);
+  return m ? m[1] : null;
+}
+
 function isDirectVideo(url: string): boolean {
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
 }
@@ -57,6 +62,7 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
   const [playing, setPlaying] = useState(false);
   const videoRef = useState<HTMLVideoElement | null>(null);
   const youtubeId = getYouTubeId(url);
+  const vimeoId = getVimeoId(url);
 
   if (youtubeId) {
     return (
@@ -84,6 +90,39 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
             src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Video"
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (vimeoId) {
+    return (
+      <div className="aspect-video bg-black relative overflow-hidden" data-testid={`video-player-${contentId}`}>
+        {!playing ? (
+          <div
+            className="absolute inset-0 cursor-pointer group"
+            onClick={() => setPlaying(true)}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-30`} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="p-4 rounded-full bg-white/90 dark:bg-black/80 group-hover:scale-110 transition-transform">
+                <Play className="h-8 w-8 text-primary fill-primary" />
+              </div>
+            </div>
+            <div className="absolute bottom-3 left-0 right-0 text-center">
+              <span className="text-sm text-white font-medium bg-black/40 px-3 py-1 rounded-full">
+                Appuyer pour lire
+              </span>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0`}
+            className="w-full h-full"
+            allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
             title="Video"
           />
