@@ -5,7 +5,8 @@ import type {
   RoomMember, EngagementStats, VideoEngagement,
   QuizQuestion, InsertQuizQuestion, QuizAttempt,
   Comment, InsertComment, Badge, UserBadge, LeaderboardEntry,
-  Follow, Activity, RoomPost, Notification
+  Follow, Activity, RoomPost, Notification,
+  PasswordResetToken
 } from "@shared/schema";
 
 export interface IStorage {
@@ -86,6 +87,12 @@ export interface IStorage {
   markNotificationRead(id: string): Promise<void>;
   markAllNotificationsRead(userId: string): Promise<void>;
   getUnreadNotificationCount(userId: string): Promise<number>;
+
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markTokenUsed(tokenId: string): Promise<void>;
+  deleteExpiredTokens(): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -845,6 +852,27 @@ export class MemStorage implements IStorage {
     return Array.from(this.notifications.values())
       .filter((n) => n.userId === userId && !n.read)
       .length;
+  }
+
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<PasswordResetToken> {
+    const id = randomUUID();
+    const resetToken: PasswordResetToken = { id, userId, token, expiresAt, used: false, createdAt: new Date() };
+    return resetToken;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    return undefined;
+  }
+
+  async markTokenUsed(tokenId: string): Promise<void> {}
+
+  async deleteExpiredTokens(): Promise<void> {}
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      this.users.set(userId, { ...user, password: hashedPassword });
+    }
   }
 }
 

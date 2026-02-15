@@ -3,12 +3,14 @@ import {
   users, contents, quizQuestions, quizAttempts, commentsTable, badges, userBadges,
   rooms, roomMembers, missions, follows, activities, roomPosts, notifications,
   videoEngagements, engagementStats, contentLikes, commentLikes, roomPostLikes,
+  passwordResetTokens,
   type User, type InsertUser, type Content, type InsertContent,
   type Room, type InsertRoom, type Mission, type InsertMission,
   type RoomMember, type EngagementStats, type VideoEngagement,
   type QuizQuestion, type InsertQuizQuestion, type QuizAttempt,
   type Comment, type InsertComment, type Badge, type UserBadge, type LeaderboardEntry,
   type Follow, type Activity, type RoomPost, type Notification,
+  type PasswordResetToken,
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, desc, asc, sql, ilike, inArray, isNull, count } from "drizzle-orm";
@@ -568,5 +570,41 @@ export class DatabaseStorage implements IStorage {
       .from(notifications)
       .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
     return result?.count ?? 0;
+  }
+
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<PasswordResetToken> {
+    const [created] = await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt,
+      used: false,
+    }).returning();
+    return created;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [result] = await db.select().from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.token, token),
+        eq(passwordResetTokens.used, false)
+      ));
+    return result;
+  }
+
+  async markTokenUsed(tokenId: string): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, tokenId));
+  }
+
+  async deleteExpiredTokens(): Promise<void> {
+    await db.delete(passwordResetTokens)
+      .where(sql`${passwordResetTokens.expiresAt} < NOW()`);
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await db.update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
   }
 }
