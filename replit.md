@@ -240,8 +240,10 @@ Custom CSS gradient classes for the African Innovation theme:
 - **Account Activation**: 6-digit code generated on registration, must be entered to activate account
 - **Login**: Blocked for inactive accounts (returns 403 with needsActivation flag)
 - **Password Security**: bcrypt hashing (12 rounds)
+- **Password Reset**: Email-based reset via Resend (15-min token expiry, rate-limited, no email enumeration)
 - **Sessions**: express-session with httpOnly cookies (7-day expiry)
-- **Auth Routes**: POST /api/auth/register, /api/auth/activate, /api/auth/login, /api/auth/logout, GET /api/auth/me
+- **Auth Routes**: POST /api/auth/register, /api/auth/activate, /api/auth/login, /api/auth/logout, GET /api/auth/me, POST /api/auth/forgot-password, POST /api/auth/reset-password
+- **Email Service**: Resend integration for transactional emails (server/email.ts)
 - **Middleware**: requireAuth on all /api/* except auth routes
 
 ## Running the App

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,9 +21,11 @@ import {
   ArrowRight,
   ShieldCheck,
   KeyRound,
+  ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 
-type AuthStep = "login" | "register" | "activate";
+type AuthStep = "login" | "register" | "activate" | "forgot" | "reset";
 
 export default function Auth() {
   const [step, setStep] = useState<AuthStep>("login");
@@ -34,9 +36,24 @@ export default function Auth() {
   const [activationCode, setActivationCode] = useState("");
   const [pendingActivationEmail, setPendingActivationEmail] = useState("");
   const [displayedCode, setDisplayedCode] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [forgotEmailSent, setForgotEmailSent] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { setUser } = useUserState();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("reset");
+    if (token) {
+      setResetToken(token);
+      setStep("reset");
+      window.history.replaceState({}, "", "/auth");
+    }
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async () => {
@@ -124,18 +141,53 @@ export default function Auth() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/forgot-password", { email });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setForgotEmailSent(true);
+      toast({ title: "Email envoyé", description: data.message });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Erreur lors de l'envoi. Réessayez.", variant: "destructive" });
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/reset-password", { token: resetToken, password: newPassword });
+      return res.json();
+    },
+    onSuccess: () => {
+      setResetSuccess(true);
+      toast({ title: "Mot de passe réinitialisé", description: "Vous pouvez maintenant vous connecter." });
+    },
+    onError: (error: Error) => {
+      const msg = error.message.includes("400")
+        ? "Ce lien est invalide ou a expiré. Veuillez faire une nouvelle demande."
+        : "Erreur lors de la réinitialisation";
+      toast({ title: "Erreur", description: msg, variant: "destructive" });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === "login") {
       loginMutation.mutate();
     } else if (step === "register") {
       registerMutation.mutate();
+    } else if (step === "forgot") {
+      forgotPasswordMutation.mutate();
+    } else if (step === "reset") {
+      resetPasswordMutation.mutate();
     } else {
       activateMutation.mutate();
     }
   };
 
-  const isPending = loginMutation.isPending || registerMutation.isPending || activateMutation.isPending;
+  const isPending = loginMutation.isPending || registerMutation.isPending || activateMutation.isPending || forgotPasswordMutation.isPending || resetPasswordMutation.isPending;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0a6e8a] via-[#0B3C5D] to-[#0a6e8a]/80 relative overflow-hidden">
@@ -163,7 +215,7 @@ export default function Auth() {
         className="w-full max-w-md relative z-10"
       >
         <Card className="p-6">
-          {step !== "activate" && (
+          {(step === "login" || step === "register") && (
             <div className="flex items-center gap-1 mb-6">
               <button
                 onClick={() => setStep("login")}
@@ -202,7 +254,165 @@ export default function Auth() {
               onSubmit={handleSubmit}
               className="space-y-4"
             >
-              {step === "activate" ? (
+              {step === "forgot" ? (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="inline-flex p-3 rounded-full gradient-stem mb-3">
+                      <Mail className="h-8 w-8 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold mb-1">Mot de passe oublié</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Entrez votre email pour recevoir un lien de réinitialisation
+                    </p>
+                  </div>
+
+                  {forgotEmailSent ? (
+                    <div className="p-4 rounded-md bg-accent/10 border border-accent/20 text-center space-y-2">
+                      <CheckCircle2 className="h-10 w-10 text-[#00C896] mx-auto" />
+                      <p className="text-sm font-medium">Email envoyé !</p>
+                      <p className="text-xs text-muted-foreground">
+                        Si un compte existe avec cet email, vous recevrez un lien de réinitialisation. Vérifiez aussi vos spams.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="ton@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="pl-10"
+                            required
+                            data-testid="input-forgot-email"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full gradient-stem text-white"
+                        disabled={isPending}
+                        data-testid="button-forgot-submit"
+                      >
+                        {isPending ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Envoi...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Envoyer le lien
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => { setStep("login"); setForgotEmailSent(false); }}
+                    className="w-full text-center text-sm text-muted-foreground mt-2 flex items-center justify-center gap-1"
+                    data-testid="button-back-to-login-forgot"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                    Retour à la connexion
+                  </button>
+                </>
+              ) : step === "reset" ? (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="inline-flex p-3 rounded-full gradient-stem mb-3">
+                      <KeyRound className="h-8 w-8 text-white" />
+                    </div>
+                    <h2 className="text-xl font-bold mb-1">Nouveau mot de passe</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Choisissez votre nouveau mot de passe
+                    </p>
+                  </div>
+
+                  {resetSuccess ? (
+                    <div className="p-4 rounded-md bg-accent/10 border border-accent/20 text-center space-y-2">
+                      <CheckCircle2 className="h-10 w-10 text-[#00C896] mx-auto" />
+                      <p className="text-sm font-medium">Mot de passe réinitialisé !</p>
+                      <p className="text-xs text-muted-foreground">
+                        Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+                      </p>
+                      <Button
+                        type="button"
+                        className="w-full gradient-stem text-white mt-3"
+                        onClick={() => { setStep("login"); setResetSuccess(false); setNewPassword(""); }}
+                        data-testid="button-go-to-login"
+                      >
+                        Se connecter
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="new-password"
+                            type={showNewPassword ? "text" : "password"}
+                            placeholder="Min. 6 caractères"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="pl-10 pr-10"
+                            required
+                            minLength={6}
+                            data-testid="input-new-password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                            data-testid="button-toggle-new-password"
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full gradient-stem text-white"
+                        disabled={isPending || newPassword.length < 6}
+                        data-testid="button-reset-submit"
+                      >
+                        {isPending ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Réinitialisation...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Réinitialiser
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </>
+                  )}
+
+                  {!resetSuccess && (
+                    <button
+                      type="button"
+                      onClick={() => { setStep("forgot"); setResetToken(""); }}
+                      className="w-full text-center text-sm text-muted-foreground mt-2 flex items-center justify-center gap-1"
+                      data-testid="button-new-reset-request"
+                    >
+                      Demander un nouveau lien
+                    </button>
+                  )}
+                </>
+              ) : step === "activate" ? (
                 <>
                   <div className="text-center mb-4">
                     <div className="inline-flex p-3 rounded-full gradient-stem mb-3">
@@ -322,7 +532,19 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Mot de passe</Label>
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <Label htmlFor="password">Mot de passe</Label>
+                      {step === "login" && (
+                        <button
+                          type="button"
+                          onClick={() => setStep("forgot")}
+                          className="text-xs text-accent"
+                          data-testid="button-forgot-password"
+                        >
+                          Mot de passe oublié ?
+                        </button>
+                      )}
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -370,7 +592,7 @@ export default function Auth() {
             </motion.form>
           </AnimatePresence>
 
-          {step !== "activate" && (
+          {(step === "login" || step === "register") && (
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {step === "login" ? "Pas encore de compte ?" : "Déjà un compte ?"}

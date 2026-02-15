@@ -3,7 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { registerSchema, loginSchema, activationSchema } from "@shared/schema";
+import { registerSchema, loginSchema, activationSchema, forgotPasswordSchema, resetPasswordSchema } from "@shared/schema";
+import { randomBytes, createHash } from "crypto";
+import { sendPasswordResetEmail } from "./email";
 import {
   analyzeContent,
   analyzeDiscussionQuality,
@@ -195,6 +197,77 @@ export async function registerRoutes(
 
     const { password: _, activationCode: __, ...safeUser } = user;
     res.json(safeUser);
+  });
+
+  const resetRateLimit = new Map<string, number>();
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const validation = forgotPasswordSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Email invalide" });
+      }
+
+      const { email } = validation.data;
+
+      const lastRequest = resetRateLimit.get(email.toLowerCase());
+      if (lastRequest && Date.now() - lastRequest < 60000) {
+        return res.json({ message: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé." });
+      }
+      resetRateLimit.set(email.toLowerCase(), Date.now());
+
+      const user = await storage.getUserByEmail(email);
+      if (user) {
+        const token = randomBytes(32).toString("hex");
+        const hashedToken = createHash("sha256").update(token).digest("hex");
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+        await storage.createPasswordResetToken(user.id, hashedToken, expiresAt);
+
+        try {
+          await sendPasswordResetEmail(email, token, user.username);
+        } catch (emailError) {
+          console.error("Email send error:", emailError);
+        }
+      }
+
+      res.json({ message: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé." });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ error: "Erreur lors de la demande" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const validation = resetPasswordSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: "Données invalides", details: validation.error.errors });
+      }
+
+      const { token, password } = validation.data;
+      const hashedToken = createHash("sha256").update(token).digest("hex");
+      const resetToken = await storage.getPasswordResetToken(hashedToken);
+
+      if (!resetToken) {
+        return res.status(400).json({ error: "Lien invalide ou expiré. Veuillez faire une nouvelle demande." });
+      }
+
+      if (new Date() > resetToken.expiresAt) {
+        await storage.markTokenUsed(resetToken.id);
+        return res.status(400).json({ error: "Ce lien a expiré. Veuillez faire une nouvelle demande." });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      await storage.updateUserPassword(resetToken.userId, hashedPassword);
+      await storage.markTokenUsed(resetToken.id);
+
+      await storage.deleteExpiredTokens();
+
+      res.json({ message: "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter." });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ error: "Erreur lors de la réinitialisation" });
+    }
   });
 
   app.get("/api/feed", requireAuth, async (req, res) => {
