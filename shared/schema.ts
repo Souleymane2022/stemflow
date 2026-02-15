@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -335,3 +335,25 @@ export const roomPostLikes = pgTable("room_post_likes", {
 export const insertRoomPostLikeSchema = createInsertSchema(roomPostLikes).omit({ id: true });
 export type InsertRoomPostLike = z.infer<typeof insertRoomPostLikeSchema>;
 export type RoomPostLike = typeof roomPostLikes.$inferSelect;
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({ id: true, createdAt: true });
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Email invalide"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token requis"),
+  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+});
