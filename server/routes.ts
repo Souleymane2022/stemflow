@@ -243,7 +243,7 @@ export async function registerRoutes(
 
   app.get("/api/content/:id", requireAuth, async (req, res) => {
     try {
-      const content = await storage.getContent(req.params.id);
+      const content = await storage.getContent(req.params.id as string);
       if (!content) {
         return res.status(404).json({ error: "Content not found" });
       }
@@ -290,7 +290,7 @@ export async function registerRoutes(
 
   app.post("/api/content/:id/like", requireAuth, async (req, res) => {
     try {
-      const result = await storage.toggleLike(req.params.id, req.session.userId!);
+      const result = await storage.toggleLike(req.params.id as string, req.session.userId!);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to toggle like" });
@@ -299,8 +299,8 @@ export async function registerRoutes(
 
   app.post("/api/content/:id/share", requireAuth, async (req, res) => {
     try {
-      await storage.shareContent(req.params.id);
-      const content = await storage.getContent(req.params.id);
+      await storage.shareContent(req.params.id as string);
+      const content = await storage.getContent(req.params.id as string);
       res.json({ success: true, shares: content?.shares ?? 0 });
     } catch (error) {
       res.status(500).json({ error: "Failed to share content" });
@@ -309,7 +309,7 @@ export async function registerRoutes(
 
   app.get("/api/content/:id/comments", requireAuth, async (req, res) => {
     try {
-      const comments = await storage.getComments(req.params.id);
+      const comments = await storage.getComments(req.params.id as string);
       const userId = req.session.userId!;
       const commentsWithMeta = await Promise.all(
         comments.map(async (c) => {
@@ -341,7 +341,7 @@ export async function registerRoutes(
         text: validation.data.text,
         userId: user.id,
         authorName: user.username,
-        contentId: req.params.id,
+        contentId: req.params.id as string,
         parentId: validation.data.parentId || null,
         createdAt: new Date().toISOString(),
       });
@@ -353,7 +353,7 @@ export async function registerRoutes(
 
   app.get("/api/comments/:id/replies", requireAuth, async (req, res) => {
     try {
-      const replies = await storage.getReplies(req.params.id);
+      const replies = await storage.getReplies(req.params.id as string);
       const userId = req.session.userId!;
       const repliesWithLikes = await Promise.all(
         replies.map(async (r) => ({
@@ -369,7 +369,7 @@ export async function registerRoutes(
 
   app.post("/api/comments/:id/like", requireAuth, async (req, res) => {
     try {
-      const result = await storage.toggleCommentLike(req.params.id, req.session.userId!);
+      const result = await storage.toggleCommentLike(req.params.id as string, req.session.userId!);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to like comment" });
@@ -378,7 +378,7 @@ export async function registerRoutes(
 
   app.delete("/api/comments/:id", requireAuth, async (req, res) => {
     try {
-      const deleted = await storage.deleteComment(req.params.id, req.session.userId!);
+      const deleted = await storage.deleteComment(req.params.id as string, req.session.userId!);
       if (!deleted) {
         return res.status(403).json({ error: "Impossible de supprimer ce commentaire" });
       }
@@ -390,7 +390,7 @@ export async function registerRoutes(
 
   app.get("/api/content/:id/quiz", requireAuth, async (req, res) => {
     try {
-      const questions = await storage.getQuizQuestions(req.params.id);
+      const questions = await storage.getQuizQuestions(req.params.id as string);
       res.json(questions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch quiz questions" });
@@ -403,7 +403,7 @@ export async function registerRoutes(
       if (!validation.success) {
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
-      const questions = await storage.getQuizQuestions(req.params.id);
+      const questions = await storage.getQuizQuestions(req.params.id as string);
       if (questions.length === 0) {
         return res.status(404).json({ error: "Quiz not found" });
       }
@@ -417,14 +417,14 @@ export async function registerRoutes(
 
       const attempt = await storage.submitQuizAttempt({
         userId: validation.data.userId,
-        contentId: req.params.id,
+        contentId: req.params.id as string,
         answers: validation.data.answers,
         score,
         totalQuestions: questions.length,
       });
 
       const quizUser = await storage.getUser(validation.data.userId);
-      const quizContent = await storage.getContent(req.params.id);
+      const quizContent = await storage.getContent(req.params.id as string);
       if (quizUser) {
         await storage.createActivity({
           userId: quizUser.id,
@@ -449,7 +449,7 @@ export async function registerRoutes(
 
   app.get("/api/content/:id/quiz/stats", requireAuth, async (req, res) => {
     try {
-      const attempts = await storage.getQuizAttempts(req.params.id);
+      const attempts = await storage.getQuizAttempts(req.params.id as string);
       const totalAttempts = attempts.length;
       const avgScore = totalAttempts > 0
         ? attempts.reduce((sum, a) => sum + (a.score / a.totalQuestions) * 100, 0) / totalAttempts
@@ -487,7 +487,7 @@ export async function registerRoutes(
 
   app.get("/api/users/:id/badges", requireAuth, async (req, res) => {
     try {
-      const userBadges = await storage.getUserBadges(req.params.id);
+      const userBadges = await storage.getUserBadges(req.params.id as string);
       const allBadges = await storage.getAllBadges();
       const result = allBadges.map((badge) => ({
         ...badge,
@@ -502,7 +502,7 @@ export async function registerRoutes(
 
   app.get("/api/leaderboard/:category", requireAuth, async (req, res) => {
     try {
-      const category = req.params.category === "all" ? undefined : req.params.category;
+      const category = (req.params.category as string) === "all" ? undefined : (req.params.category as string);
       const leaderboard = await storage.getLeaderboard(category);
       res.json(leaderboard);
     } catch (error) {
@@ -521,7 +521,7 @@ export async function registerRoutes(
 
   app.get("/api/rooms/:id", requireAuth, async (req, res) => {
     try {
-      const room = await storage.getRoom(req.params.id);
+      const room = await storage.getRoom(req.params.id as string);
       if (!room) {
         return res.status(404).json({ error: "Room not found" });
       }
@@ -533,7 +533,7 @@ export async function registerRoutes(
 
   app.get("/api/rooms/:id/posts", requireAuth, async (req, res) => {
     try {
-      const posts = await storage.getRoomPosts(req.params.id);
+      const posts = await storage.getRoomPosts(req.params.id as string);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch room posts" });
@@ -552,7 +552,7 @@ export async function registerRoutes(
         return res.status(401).json({ error: "User not found" });
       }
       const post = await storage.createRoomPost({
-        roomId: req.params.id,
+        roomId: req.params.id as string,
         userId: user.id,
         username: user.username,
         text: validation.data.text,
@@ -565,7 +565,7 @@ export async function registerRoutes(
 
   app.post("/api/room-posts/:id/like", requireAuth, async (req, res) => {
     try {
-      const result = await storage.likeRoomPost(req.params.id, req.session.userId!);
+      const result = await storage.likeRoomPost(req.params.id as string, req.session.userId!);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to like room post" });
@@ -574,7 +574,7 @@ export async function registerRoutes(
 
   app.get("/api/rooms/:id/content", requireAuth, async (req, res) => {
     try {
-      const content = await storage.getContentByRoom(req.params.id);
+      const content = await storage.getContentByRoom(req.params.id as string);
       res.json(content);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch room content" });
@@ -588,9 +588,9 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
       const { userId, role } = validation.data;
-      const member = await storage.joinRoom(req.params.id, userId, role);
+      const member = await storage.joinRoom(req.params.id as string, userId, role);
       const joinUser = await storage.getUser(userId);
-      const joinRoom = await storage.getRoom(req.params.id);
+      const joinRoom = await storage.getRoom(req.params.id as string);
       if (joinUser && joinRoom) {
         await storage.createActivity({
           userId: joinUser.id,
@@ -621,7 +621,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
       const { progress } = validation.data;
-      const mission = await storage.updateMissionProgress(req.params.id, progress);
+      const mission = await storage.updateMissionProgress(req.params.id as string, progress);
       if (!mission) {
         return res.status(404).json({ error: "Mission not found" });
       }
@@ -633,7 +633,7 @@ export async function registerRoutes(
 
   app.post("/api/missions/:id/complete", requireAuth, async (req, res) => {
     try {
-      const mission = await storage.completeMission(req.params.id);
+      const mission = await storage.completeMission(req.params.id as string);
       if (!mission) {
         return res.status(404).json({ error: "Mission not found" });
       }
@@ -669,12 +669,12 @@ export async function registerRoutes(
 
   app.get("/api/users/:id", requireAuth, async (req, res) => {
     try {
-      const user = await storage.getUser(req.params.id);
+      const user = await storage.getUser(req.params.id as string);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
       const { password: _, activationCode: __, ...safeUser } = user;
-      const counts = await storage.getFollowCounts(req.params.id);
+      const counts = await storage.getFollowCounts(req.params.id as string);
       res.json({ ...safeUser, ...counts });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user" });
@@ -684,7 +684,7 @@ export async function registerRoutes(
   app.post("/api/users/:id/follow", requireAuth, async (req, res) => {
     try {
       const followerId = req.session.userId!;
-      const followingId = req.params.id;
+      const followingId = req.params.id as string;
       if (followerId === followingId) {
         return res.status(400).json({ error: "Impossible de se suivre soi-meme" });
       }
@@ -707,7 +707,7 @@ export async function registerRoutes(
 
   app.delete("/api/users/:id/follow", requireAuth, async (req, res) => {
     try {
-      await storage.unfollowUser(req.session.userId!, req.params.id);
+      await storage.unfollowUser(req.session.userId!, req.params.id as string);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to unfollow user" });
@@ -716,8 +716,8 @@ export async function registerRoutes(
 
   app.get("/api/users/:id/followers", requireAuth, async (req, res) => {
     try {
-      const followerIds = await storage.getFollowers(req.params.id);
-      const counts = await storage.getFollowCounts(req.params.id);
+      const followerIds = await storage.getFollowers(req.params.id as string);
+      const counts = await storage.getFollowCounts(req.params.id as string);
       const profiles = await Promise.all(
         followerIds.map(async (id) => {
           const user = await storage.getUser(id);
@@ -734,8 +734,8 @@ export async function registerRoutes(
 
   app.get("/api/users/:id/following", requireAuth, async (req, res) => {
     try {
-      const followingIds = await storage.getFollowing(req.params.id);
-      const counts = await storage.getFollowCounts(req.params.id);
+      const followingIds = await storage.getFollowing(req.params.id as string);
+      const counts = await storage.getFollowCounts(req.params.id as string);
       const profiles = await Promise.all(
         followingIds.map(async (id) => {
           const user = await storage.getUser(id);
@@ -752,7 +752,7 @@ export async function registerRoutes(
 
   app.get("/api/users/:id/is-following", requireAuth, async (req, res) => {
     try {
-      const isFollowing = await storage.isFollowing(req.session.userId!, req.params.id);
+      const isFollowing = await storage.isFollowing(req.session.userId!, req.params.id as string);
       res.json({ isFollowing });
     } catch (error) {
       res.status(500).json({ error: "Failed to check follow status" });
@@ -761,7 +761,7 @@ export async function registerRoutes(
 
   app.get("/api/users/:id/activities", requireAuth, async (req, res) => {
     try {
-      const activities = await storage.getActivitiesByUser(req.params.id);
+      const activities = await storage.getActivitiesByUser(req.params.id as string);
       res.json(activities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });
@@ -774,7 +774,7 @@ export async function registerRoutes(
       if (!validation.success) {
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
-      const user = await storage.updateUserProfile(req.params.id, validation.data);
+      const user = await storage.updateUserProfile(req.params.id as string, validation.data);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -914,12 +914,12 @@ export async function registerRoutes(
 
   app.get("/api/ai/learnscore/:contentId", requireAuth, async (req, res) => {
     try {
-      const content = await storage.getContent(req.params.contentId);
+      const content = await storage.getContent(req.params.contentId as string);
       if (!content) {
         return res.status(404).json({ error: "Content not found" });
       }
 
-      const quizAttempts = await storage.getQuizAttempts(req.params.contentId);
+      const quizAttempts = await storage.getQuizAttempts(req.params.contentId as string);
       const avgQuizScore = quizAttempts.length > 0
         ? quizAttempts.reduce((sum, a) => sum + (a.score / a.totalQuestions) * 100, 0) / quizAttempts.length
         : 0;
@@ -967,7 +967,7 @@ export async function registerRoutes(
 
   app.patch("/api/notifications/:id/read", requireAuth, async (req, res) => {
     try {
-      await storage.markNotificationRead(req.params.id);
+      await storage.markNotificationRead(req.params.id as string);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to mark notification read" });
