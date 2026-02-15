@@ -826,7 +826,21 @@ export async function registerRoutes(
 
   app.post("/api/ai/recommendations", requireAuth, async (req, res) => {
     try {
-      const { interests, level, recentInteractions } = req.body;
+      const userId = req.session.userId!;
+      let { interests, level, recentInteractions } = req.body;
+
+      if (!interests || !level) {
+        const user = await storage.getUser(userId);
+        if (user) {
+          interests = interests || user.interests || [];
+          level = level || user.level || "curieux";
+        }
+      }
+
+      if (!recentInteractions || recentInteractions.length === 0) {
+        recentInteractions = await storage.getUserLikedCategories(userId, 20);
+      }
+
       const recommendations = await getSmartRecommendations(
         interests || [],
         level || "curieux",
@@ -863,7 +877,9 @@ export async function registerRoutes(
       const userContent = await storage.getContentByAuthor(userId);
       const quizAttempts = await storage.getUserQuizAttempts(userId);
 
-      const categoriesEngaged = Array.from(new Set(userContent.map((c) => c.category)));
+      const engagedFromDB = await storage.getUserEngagedCategories(userId);
+      const authoredCategories = userContent.map((c) => c.category);
+      const categoriesEngaged = Array.from(new Set([...engagedFromDB, ...authoredCategories]));
       const quizScores = quizAttempts.map((a) =>
         Math.round((a.score / a.totalQuestions) * 100)
       );
@@ -985,9 +1001,32 @@ export async function registerRoutes(
       const perfectQuizzes = quizAttempts.filter(a => a.score === a.totalQuestions).length;
 
       const categoryBreakdown = { science: 0, technology: 0, engineering: 0, mathematics: 0 };
+      const contentMap = new Map(allContent.map(c => [c.id, c]));
+      const engagedContentIds = new Set<string>();
+
+      const userLikedCategories = await storage.getUserLikedCategories(userId, 200);
+      userLikedCategories.forEach(lc => {
+        const cat = lc.category as keyof typeof categoryBreakdown;
+        if (categoryBreakdown[cat] !== undefined) {
+          categoryBreakdown[cat]++;
+        }
+      });
+      quizAttempts.forEach(a => {
+        if (!engagedContentIds.has(a.contentId)) {
+          engagedContentIds.add(a.contentId);
+          const content = contentMap.get(a.contentId);
+          if (content) {
+            const cat = content.category as keyof typeof categoryBreakdown;
+            if (categoryBreakdown[cat] !== undefined) {
+              categoryBreakdown[cat]++;
+            }
+          }
+        }
+      });
       userContent.forEach(c => {
-        if (categoryBreakdown[c.category as keyof typeof categoryBreakdown] !== undefined) {
-          categoryBreakdown[c.category as keyof typeof categoryBreakdown]++;
+        const cat = c.category as keyof typeof categoryBreakdown;
+        if (categoryBreakdown[cat] !== undefined) {
+          categoryBreakdown[cat]++;
         }
       });
 

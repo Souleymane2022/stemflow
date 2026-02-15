@@ -174,101 +174,164 @@ export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
 export const roomTypes = ["public", "private"] as const;
 export const roomRoles = ["apprenant", "challenger", "mentor", "moderateur"] as const;
 
-export const roomSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  type: z.enum(roomTypes),
-  category: z.enum(categories),
-  imageUrl: z.string().optional(),
-  memberCount: z.number().default(0),
-  createdAt: z.string(),
+export const rooms = pgTable("rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  type: text("type").notNull(),
+  category: text("category").notNull(),
+  imageUrl: text("image_url"),
+  memberCount: integer("member_count").default(0),
+  createdAt: text("created_at").notNull(),
 });
 
-export type Room = z.infer<typeof roomSchema>;
-
-export const insertRoomSchema = roomSchema.omit({ id: true, createdAt: true, memberCount: true });
+export const insertRoomSchema = createInsertSchema(rooms).omit({ id: true, memberCount: true });
 export type InsertRoom = z.infer<typeof insertRoomSchema>;
+export type Room = typeof rooms.$inferSelect;
 
-export const roomMemberSchema = z.object({
-  id: z.string(),
-  roomId: z.string(),
-  userId: z.string(),
-  role: z.enum(roomRoles),
-  xpInRoom: z.number().default(0),
-  joinedAt: z.string(),
+export const roomMembers = pgTable("room_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roomId: text("room_id").notNull(),
+  userId: text("user_id").notNull(),
+  role: text("role").notNull(),
+  xpInRoom: integer("xp_in_room").default(0),
+  joinedAt: text("joined_at").notNull(),
 });
 
-export type RoomMember = z.infer<typeof roomMemberSchema>;
+export const insertRoomMemberSchema = createInsertSchema(roomMembers).omit({ id: true, xpInRoom: true });
+export type InsertRoomMember = z.infer<typeof insertRoomMemberSchema>;
+export type RoomMember = typeof roomMembers.$inferSelect;
 
 export const missionTypes = ["watch_videos", "complete_quiz", "join_salon", "comment", "share_content", "win_battle", "create_content", "streak"] as const;
 export const missionFrequencies = ["daily", "weekly", "one_time"] as const;
 
-export const missionSchema = z.object({
-  id: z.string(),
-  missionType: z.enum(missionTypes),
-  title: z.string(),
-  description: z.string(),
-  targetValue: z.number(),
-  currentProgress: z.number().default(0),
-  xpReward: z.number(),
-  frequency: z.enum(missionFrequencies),
-  category: z.enum(categories).optional(),
-  completed: z.boolean().default(false),
-  expiresAt: z.string().optional(),
+export const missions = pgTable("missions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  missionType: text("mission_type").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  targetValue: integer("target_value").notNull(),
+  currentProgress: integer("current_progress").default(0),
+  xpReward: integer("xp_reward").notNull(),
+  frequency: text("frequency").notNull(),
+  category: text("category"),
+  completed: boolean("completed").default(false),
+  expiresAt: text("expires_at"),
 });
 
-export type Mission = z.infer<typeof missionSchema>;
-
-export const insertMissionSchema = missionSchema.omit({ id: true, currentProgress: true, completed: true });
+export const insertMissionSchema = createInsertSchema(missions).omit({ id: true, currentProgress: true, completed: true });
 export type InsertMission = z.infer<typeof insertMissionSchema>;
+export type Mission = typeof missions.$inferSelect;
 
-export const engagementStatsSchema = z.object({
-  userId: z.string(),
-  categoryStats: z.record(z.enum(categories), z.object({
-    watchTime: z.number().default(0),
-    completionRate: z.number().default(0),
-    interactionCount: z.number().default(0),
-  })),
-  preferredDifficulty: z.enum(difficulties).default("debutant"),
+export const follows = pgTable("follows", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  followerId: text("follower_id").notNull(),
+  followingId: text("following_id").notNull(),
+  createdAt: text("created_at").notNull(),
 });
 
-export type EngagementStats = z.infer<typeof engagementStatsSchema>;
-
-export const videoEngagementSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  contentId: z.string(),
-  watchTimeSeconds: z.number(),
-  completionPercentage: z.number(),
-  liked: z.boolean().default(false),
-  commented: z.boolean().default(false),
-  saved: z.boolean().default(false),
-  shared: z.boolean().default(false),
-  rewatchCount: z.number().default(0),
-});
-
-export type VideoEngagement = z.infer<typeof videoEngagementSchema>;
+export const insertFollowSchema = createInsertSchema(follows).omit({ id: true });
+export type InsertFollow = z.infer<typeof insertFollowSchema>;
+export type Follow = typeof follows.$inferSelect;
 
 export const activityTypes = ["content_created", "quiz_completed", "room_joined", "badge_earned", "level_up", "mission_completed"] as const;
 
-export const followSchema = z.object({
-  id: z.string(),
-  followerId: z.string(),
-  followingId: z.string(),
-  createdAt: z.string(),
+export const activities = pgTable("activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  username: text("username").notNull(),
+  activityType: text("activity_type").notNull(),
+  description: text("description").notNull(),
+  metadata: text("metadata"),
+  createdAt: text("created_at").notNull(),
 });
 
-export type Follow = z.infer<typeof followSchema>;
+export const insertActivitySchema = createInsertSchema(activities).omit({ id: true });
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Activity = typeof activities.$inferSelect;
 
-export const activitySchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  username: z.string(),
-  activityType: z.enum(activityTypes),
-  description: z.string(),
-  metadata: z.string().nullable().optional(),
-  createdAt: z.string(),
+export const roomPosts = pgTable("room_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roomId: text("room_id").notNull(),
+  userId: text("user_id").notNull(),
+  username: text("username").notNull(),
+  text: text("text").notNull(),
+  likes: integer("likes").default(0),
+  createdAt: text("created_at").notNull(),
 });
 
-export type Activity = z.infer<typeof activitySchema>;
+export const insertRoomPostSchema = createInsertSchema(roomPosts).omit({ id: true, likes: true });
+export type InsertRoomPost = z.infer<typeof insertRoomPostSchema>;
+export type RoomPost = typeof roomPosts.$inferSelect;
+
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  read: boolean("read").default(false),
+  createdAt: text("created_at").notNull(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, read: true });
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+export const videoEngagements = pgTable("video_engagements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull(),
+  contentId: text("content_id").notNull(),
+  watchTimeSeconds: integer("watch_time_seconds").notNull(),
+  completionPercentage: integer("completion_percentage").notNull(),
+  liked: boolean("liked").default(false),
+  commented: boolean("commented").default(false),
+  saved: boolean("saved").default(false),
+  shared: boolean("shared").default(false),
+  rewatchCount: integer("rewatch_count").default(0),
+});
+
+export const insertVideoEngagementSchema = createInsertSchema(videoEngagements).omit({ id: true });
+export type InsertVideoEngagement = z.infer<typeof insertVideoEngagementSchema>;
+export type VideoEngagement = typeof videoEngagements.$inferSelect;
+
+export const engagementStats = pgTable("engagement_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull().unique(),
+  categoryStats: jsonb("category_stats"),
+  preferredDifficulty: text("preferred_difficulty").default("debutant"),
+});
+
+export const insertEngagementStatsSchema = createInsertSchema(engagementStats).omit({ id: true });
+export type InsertEngagementStats = z.infer<typeof insertEngagementStatsSchema>;
+export type EngagementStats = typeof engagementStats.$inferSelect;
+
+export const contentLikes = pgTable("content_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentId: text("content_id").notNull(),
+  userId: text("user_id").notNull(),
+});
+
+export const insertContentLikeSchema = createInsertSchema(contentLikes).omit({ id: true });
+export type InsertContentLike = z.infer<typeof insertContentLikeSchema>;
+export type ContentLike = typeof contentLikes.$inferSelect;
+
+export const commentLikes = pgTable("comment_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  commentId: text("comment_id").notNull(),
+  userId: text("user_id").notNull(),
+});
+
+export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true });
+export type InsertCommentLike = z.infer<typeof insertCommentLikeSchema>;
+export type CommentLike = typeof commentLikes.$inferSelect;
+
+export const roomPostLikes = pgTable("room_post_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: text("post_id").notNull(),
+  userId: text("user_id").notNull(),
+});
+
+export const insertRoomPostLikeSchema = createInsertSchema(roomPostLikes).omit({ id: true });
+export type InsertRoomPostLike = z.infer<typeof insertRoomPostLikeSchema>;
+export type RoomPostLike = typeof roomPostLikes.$inferSelect;

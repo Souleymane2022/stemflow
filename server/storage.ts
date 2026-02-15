@@ -5,28 +5,8 @@ import type {
   RoomMember, EngagementStats, VideoEngagement,
   QuizQuestion, InsertQuizQuestion, QuizAttempt,
   Comment, InsertComment, Badge, UserBadge, LeaderboardEntry,
-  Follow, Activity
+  Follow, Activity, RoomPost, Notification
 } from "@shared/schema";
-
-export interface RoomPost {
-  id: string;
-  roomId: string;
-  userId: string;
-  username: string;
-  text: string;
-  likes: number;
-  createdAt: string;
-}
-
-export interface Notification {
-  id: string;
-  userId: string;
-  type: "level_up" | "badge_earned" | "mission_complete" | "new_follower" | "xp_gained" | "streak_milestone" | "room_activity";
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-}
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -44,6 +24,8 @@ export interface IStorage {
   toggleLike(contentId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   hasUserLiked(contentId: string, userId: string): Promise<boolean>;
   getUserLikes(userId: string): Promise<string[]>;
+  getUserLikedCategories(userId: string, limit?: number): Promise<{ category: string; liked: boolean }[]>;
+  getUserEngagedCategories(userId: string): Promise<string[]>;
   shareContent(contentId: string): Promise<void>;
   getContentByAuthor(authorId: string): Promise<Content[]>;
   incrementCommentCount(contentId: string): Promise<void>;
@@ -153,12 +135,12 @@ export class MemStorage implements IStorage {
 
   private seedData() {
     const rooms: Room[] = [
-      { id: "room-1", name: "Labo Science", description: "Explore les mystères de la science avec des expériences passionnantes", type: "public", category: "science", memberCount: 234, createdAt: new Date().toISOString() },
-      { id: "room-2", name: "Tech Makers", description: "Construis des projets tech innovants avec la communauté", type: "public", category: "technology", memberCount: 189, createdAt: new Date().toISOString() },
-      { id: "room-3", name: "Ingénieurs en herbe", description: "Conçois et crée des solutions d'ingénierie", type: "public", category: "engineering", memberCount: 156, createdAt: new Date().toISOString() },
-      { id: "room-4", name: "Mathématiques Fun", description: "Les maths peuvent être amusantes ! Découvre-le ici", type: "public", category: "mathematics", memberCount: 203, createdAt: new Date().toISOString() },
-      { id: "room-5", name: "Robotique Club", description: "Apprends à construire et programmer des robots", type: "public", category: "technology", memberCount: 142, createdAt: new Date().toISOString() },
-      { id: "room-6", name: "Astronomie", description: "Explore l'univers et ses mystères", type: "public", category: "science", memberCount: 178, createdAt: new Date().toISOString() },
+      { id: "room-1", name: "Labo Science", description: "Explore les mystères de la science avec des expériences passionnantes", type: "public", category: "science", imageUrl: null, memberCount: 234, createdAt: new Date().toISOString() },
+      { id: "room-2", name: "Tech Makers", description: "Construis des projets tech innovants avec la communauté", type: "public", category: "technology", imageUrl: null, memberCount: 189, createdAt: new Date().toISOString() },
+      { id: "room-3", name: "Ingénieurs en herbe", description: "Conçois et crée des solutions d'ingénierie", type: "public", category: "engineering", imageUrl: null, memberCount: 156, createdAt: new Date().toISOString() },
+      { id: "room-4", name: "Mathématiques Fun", description: "Les maths peuvent être amusantes ! Découvre-le ici", type: "public", category: "mathematics", imageUrl: null, memberCount: 203, createdAt: new Date().toISOString() },
+      { id: "room-5", name: "Robotique Club", description: "Apprends à construire et programmer des robots", type: "public", category: "technology", imageUrl: null, memberCount: 142, createdAt: new Date().toISOString() },
+      { id: "room-6", name: "Astronomie", description: "Explore l'univers et ses mystères", type: "public", category: "science", imageUrl: null, memberCount: 178, createdAt: new Date().toISOString() },
     ];
     rooms.forEach((room) => this.rooms.set(room.id, room));
 
@@ -248,13 +230,13 @@ export class MemStorage implements IStorage {
     badges.forEach((badge) => this.badges.set(badge.id, badge));
 
     const missions: Mission[] = [
-      { id: "mission-1", missionType: "watch_videos", title: "Explorateur du jour", description: "Regarde 3 vidéos de science", targetValue: 3, currentProgress: 1, xpReward: 100, frequency: "daily", category: "science", completed: false },
-      { id: "mission-2", missionType: "complete_quiz", title: "Maître des quiz", description: "Complète 2 quiz cette semaine", targetValue: 2, currentProgress: 0, xpReward: 150, frequency: "weekly", completed: false },
-      { id: "mission-3", missionType: "join_salon", title: "Socialise !", description: "Rejoins un nouveau salon", targetValue: 1, currentProgress: 0, xpReward: 75, frequency: "one_time", completed: false },
-      { id: "mission-4", missionType: "comment", title: "Participe à la discussion", description: "Commente 2 publications", targetValue: 2, currentProgress: 1, xpReward: 50, frequency: "daily", completed: false },
-      { id: "mission-5", missionType: "streak", title: "Série de 7 jours", description: "Connecte-toi 7 jours de suite", targetValue: 7, currentProgress: 3, xpReward: 300, frequency: "one_time", completed: false },
-      { id: "mission-6", missionType: "share_content", title: "Ambassadeur STEM", description: "Partage 1 contenu avec un ami", targetValue: 1, currentProgress: 1, xpReward: 50, frequency: "daily", completed: true },
-      { id: "mission-7", missionType: "create_content", title: "Créateur de contenu", description: "Publie un nouveau contenu", targetValue: 1, currentProgress: 0, xpReward: 200, frequency: "weekly", completed: false },
+      { id: "mission-1", missionType: "watch_videos", title: "Explorateur du jour", description: "Regarde 3 vidéos de science", targetValue: 3, currentProgress: 1, xpReward: 100, frequency: "daily", category: "science", completed: false, expiresAt: null },
+      { id: "mission-2", missionType: "complete_quiz", title: "Maître des quiz", description: "Complète 2 quiz cette semaine", targetValue: 2, currentProgress: 0, xpReward: 150, frequency: "weekly", category: null, completed: false, expiresAt: null },
+      { id: "mission-3", missionType: "join_salon", title: "Socialise !", description: "Rejoins un nouveau salon", targetValue: 1, currentProgress: 0, xpReward: 75, frequency: "one_time", category: null, completed: false, expiresAt: null },
+      { id: "mission-4", missionType: "comment", title: "Participe à la discussion", description: "Commente 2 publications", targetValue: 2, currentProgress: 1, xpReward: 50, frequency: "daily", category: null, completed: false, expiresAt: null },
+      { id: "mission-5", missionType: "streak", title: "Série de 7 jours", description: "Connecte-toi 7 jours de suite", targetValue: 7, currentProgress: 3, xpReward: 300, frequency: "one_time", category: null, completed: false, expiresAt: null },
+      { id: "mission-6", missionType: "share_content", title: "Ambassadeur STEM", description: "Partage 1 contenu avec un ami", targetValue: 1, currentProgress: 1, xpReward: 50, frequency: "daily", category: null, completed: true, expiresAt: null },
+      { id: "mission-7", missionType: "create_content", title: "Créateur de contenu", description: "Publie un nouveau contenu", targetValue: 1, currentProgress: 0, xpReward: 200, frequency: "weekly", category: null, completed: false, expiresAt: null },
     ];
     missions.forEach((mission) => this.missions.set(mission.id, mission));
 
@@ -442,6 +424,30 @@ export class MemStorage implements IStorage {
     return likedContentIds;
   }
 
+  async getUserLikedCategories(userId: string, limit = 20): Promise<{ category: string; liked: boolean }[]> {
+    const likedContentIds = await this.getUserLikes(userId);
+    return likedContentIds.slice(0, limit).map(contentId => {
+      const content = this.contents.get(contentId);
+      return { category: content?.category || "science", liked: true };
+    });
+  }
+
+  async getUserEngagedCategories(userId: string): Promise<string[]> {
+    const likedContentIds = await this.getUserLikes(userId);
+    const categories = new Set<string>();
+    likedContentIds.forEach(contentId => {
+      const content = this.contents.get(contentId);
+      if (content) categories.add(content.category);
+    });
+    this.quizAttempts.forEach(attempt => {
+      if (attempt.userId === userId) {
+        const content = this.contents.get(attempt.contentId);
+        if (content) categories.add(content.category);
+      }
+    });
+    return Array.from(categories);
+  }
+
   async shareContent(contentId: string): Promise<void> {
     const content = this.contents.get(contentId);
     if (content) {
@@ -616,7 +622,7 @@ export class MemStorage implements IStorage {
   }
 
   async getAllRooms(): Promise<Room[]> {
-    return Array.from(this.rooms.values()).sort((a, b) => b.memberCount - a.memberCount);
+    return Array.from(this.rooms.values()).sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0));
   }
 
   async getRoom(id: string): Promise<Room | undefined> {
@@ -625,7 +631,7 @@ export class MemStorage implements IStorage {
 
   async createRoom(room: InsertRoom): Promise<Room> {
     const id = randomUUID();
-    const newRoom: Room = { ...room, id, memberCount: 0, createdAt: new Date().toISOString() };
+    const newRoom: Room = { ...room, id, imageUrl: room.imageUrl ?? null, memberCount: 0, createdAt: new Date().toISOString() };
     this.rooms.set(id, newRoom);
     return newRoom;
   }
@@ -636,7 +642,7 @@ export class MemStorage implements IStorage {
     this.roomMembers.set(id, member);
     const room = this.rooms.get(roomId);
     if (room) {
-      room.memberCount += 1;
+      room.memberCount = (room.memberCount ?? 0) + 1;
       this.rooms.set(roomId, room);
     }
     return member;
@@ -652,7 +658,7 @@ export class MemStorage implements IStorage {
 
   async createMission(mission: InsertMission): Promise<Mission> {
     const id = randomUUID();
-    const newMission: Mission = { ...mission, id, currentProgress: 0, completed: false };
+    const newMission: Mission = { ...mission, id, category: mission.category ?? null, expiresAt: mission.expiresAt ?? null, currentProgress: 0, completed: false };
     this.missions.set(id, newMission);
     return newMission;
   }
@@ -793,13 +799,13 @@ export class MemStorage implements IStorage {
     const likes = this.roomPostLikes.get(postId)!;
     if (likes.has(userId)) {
       likes.delete(userId);
-      post.likes = Math.max(0, post.likes - 1);
+      post.likes = Math.max(0, (post.likes ?? 0) - 1);
     } else {
       likes.add(userId);
-      post.likes = post.likes + 1;
+      post.likes = (post.likes ?? 0) + 1;
     }
     this.roomPosts.set(postId, post);
-    return { liked: likes.has(userId), likeCount: post.likes };
+    return { liked: likes.has(userId), likeCount: post.likes ?? 0 };
   }
 
   async getNotifications(userId: string): Promise<Notification[]> {
@@ -828,11 +834,11 @@ export class MemStorage implements IStorage {
   }
 
   async markAllNotificationsRead(userId: string): Promise<void> {
-    for (const [id, notif] of this.notifications) {
+    this.notifications.forEach((notif, id) => {
       if (notif.userId === userId && !notif.read) {
         this.notifications.set(id, { ...notif, read: true });
       }
-    }
+    });
   }
 
   async getUnreadNotificationCount(userId: string): Promise<number> {
@@ -842,4 +848,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./dbStorage";
+export const storage: IStorage = new DatabaseStorage();
