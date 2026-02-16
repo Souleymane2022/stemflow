@@ -10,6 +10,9 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   isActive: boolean("is_active").default(false),
   activationCode: text("activation_code"),
+  oauthId: text("oauth_id"),
+  oauthProvider: text("oauth_provider"),
+  profileImageUrl: text("profile_image_url"),
   preferredLanguage: text("preferred_language").default("fr"),
   educationLevel: text("education_level"),
   interests: text("interests").array(),
@@ -357,3 +360,5 @@ export const resetPasswordSchema = z.object({
   token: z.string().min(1, "Token requis"),
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
 });
+
+export * from "./models/auth";

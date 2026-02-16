@@ -239,12 +239,17 @@ Custom CSS gradient classes for the African Innovation theme:
 - **Registration**: Unique email/username enforcement (409 on duplicates)
 - **Account Activation**: 6-digit code generated on registration, must be entered to activate account
 - **Login**: Blocked for inactive accounts (returns 403 with needsActivation flag)
+- **OAuth Login**: Replit Auth (OIDC) supporting Google, GitHub, X, Apple login via /api/oauth/login
+- **Account Linking**: OAuth login auto-links to existing accounts by email, or creates new account
 - **Password Security**: bcrypt hashing (12 rounds)
 - **Password Reset**: Email-based reset via Resend (15-min token expiry, rate-limited, no email enumeration)
-- **Sessions**: express-session with httpOnly cookies (7-day expiry)
+- **Sessions**: PostgreSQL-backed via connect-pg-simple (user_sessions table), httpOnly cookies (7-day expiry)
+- **Rate Limiting**: IP-based rate limiting on all auth endpoints (register: 5/min, login: 10/min, forgot: 3/min, reset: 5/min)
 - **Auth Routes**: POST /api/auth/register, /api/auth/activate, /api/auth/login, /api/auth/logout, GET /api/auth/me, POST /api/auth/forgot-password, POST /api/auth/reset-password
+- **OAuth Routes**: GET /api/oauth/login, GET /api/oauth/callback, GET /api/oauth/logout
 - **Email Service**: Resend integration for transactional emails (server/email.ts)
 - **Middleware**: requireAuth on all /api/* except auth routes
+- **OAuth Integration**: server/replit_integrations/auth/ (OIDC strategy, passport, oauth_users table)
 
 ## Running the App
 

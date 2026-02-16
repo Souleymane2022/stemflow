@@ -1,8 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { pool } from "./db";
 
 declare module "express-session" {
   interface SessionData {
@@ -38,8 +40,15 @@ app.use((req, res, next) => {
 
 app.set("trust proxy", 1);
 
+const PgStore = connectPgSimple(session);
+
 app.use(
   session({
+    store: new PgStore({
+      pool: pool,
+      tableName: "user_sessions",
+      createTableIfMissing: true,
+    }),
     secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",
     resave: false,
     saveUninitialized: false,
@@ -90,9 +99,22 @@ app.use((req, res, next) => {
 });
 
 import { seedDatabase } from "./seed";
+import { setupAuth } from "./replit_integrations/auth";
+import { storage } from "./storage";
 
 (async () => {
   await seedDatabase();
+
+  await setupAuth(app, async (claims: any, req: any) => {
+    const oauthId = claims.sub;
+    const email = claims.email || null;
+    const firstName = claims.first_name || null;
+    const lastName = claims.last_name || null;
+    const profileImageUrl = claims.profile_image_url || null;
+    const user = await storage.createOrLinkOAuthUser(oauthId, "replit", email, firstName, lastName, profileImageUrl);
+    req.session.userId = user.id;
+  });
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {

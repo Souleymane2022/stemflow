@@ -93,6 +93,9 @@ export interface IStorage {
   markTokenUsed(tokenId: string): Promise<void>;
   deleteExpiredTokens(): Promise<void>;
   updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
+  getUserByOAuthId(oauthId: string): Promise<User | undefined>;
+  createOrLinkOAuthUser(oauthId: string, oauthProvider: string, email: string | null, firstName: string | null, lastName: string | null, profileImageUrl: string | null): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -248,11 +251,11 @@ export class MemStorage implements IStorage {
     missions.forEach((mission) => this.missions.set(mission.id, mission));
 
     const leaderboardUsers: User[] = [
-      { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", isActive: true, activationCode: null, xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
-      { id: "lb-user-2", username: "Alan Turing", email: "alan@stemflow.com", password: "", isActive: true, activationCode: null, xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"], createdAt: new Date().toISOString() },
-      { id: "lb-user-3", username: "Ada Lovelace", email: "ada@stemflow.com", password: "", isActive: true, activationCode: null, xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"], createdAt: new Date().toISOString() },
-      { id: "lb-user-4", username: "Pierre Fermat", email: "pierre@stemflow.com", password: "", isActive: true, activationCode: null, xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"], createdAt: new Date().toISOString() },
-      { id: "lb-user-5", username: "Nikola Tesla", email: "nikola@stemflow.com", password: "", isActive: true, activationCode: null, xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"], createdAt: new Date().toISOString() },
+      { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", isActive: true, activationCode: null, oauthId: null, oauthProvider: null, profileImageUrl: null, xp: 4500, level: "challenger", streak: 15, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
+      { id: "lb-user-2", username: "Alan Turing", email: "alan@stemflow.com", password: "", isActive: true, activationCode: null, oauthId: null, oauthProvider: null, profileImageUrl: null, xp: 3800, level: "analyste", streak: 22, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology", "mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-3", username: "Ada Lovelace", email: "ada@stemflow.com", password: "", isActive: true, activationCode: null, oauthId: null, oauthProvider: null, profileImageUrl: null, xp: 3200, level: "analyste", streak: 10, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["technology"], createdAt: new Date().toISOString() },
+      { id: "lb-user-4", username: "Pierre Fermat", email: "pierre@stemflow.com", password: "", isActive: true, activationCode: null, oauthId: null, oauthProvider: null, profileImageUrl: null, xp: 2900, level: "analyste", streak: 8, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["mathematics"], createdAt: new Date().toISOString() },
+      { id: "lb-user-5", username: "Nikola Tesla", email: "nikola@stemflow.com", password: "", isActive: true, activationCode: null, oauthId: null, oauthProvider: null, profileImageUrl: null, xp: 2500, level: "explorateur", streak: 12, onboardingCompleted: true, preferredLanguage: "en", educationLevel: "universite", interests: ["engineering", "technology"], createdAt: new Date().toISOString() },
     ];
     leaderboardUsers.forEach((u) => this.users.set(u.id, u));
 
@@ -321,6 +324,9 @@ export class MemStorage implements IStorage {
       email: insertUser.email.toLowerCase(),
       isActive: false,
       activationCode,
+      oauthId: null,
+      oauthProvider: null,
+      profileImageUrl: null,
       preferredLanguage: "fr",
       educationLevel: null,
       interests: null,
@@ -873,6 +879,34 @@ export class MemStorage implements IStorage {
     if (user) {
       this.users.set(userId, { ...user, password: hashedPassword });
     }
+  }
+
+  async getUserByOAuthId(oauthId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find((u) => u.oauthId === oauthId);
+  }
+
+  async createOrLinkOAuthUser(oauthId: string, oauthProvider: string, email: string | null, firstName: string | null, lastName: string | null, profileImageUrl: string | null): Promise<User> {
+    if (email) {
+      const existing = await this.getUserByEmail(email);
+      if (existing) {
+        const updated = { ...existing, oauthId, oauthProvider, profileImageUrl: profileImageUrl || existing.profileImageUrl };
+        this.users.set(existing.id, updated);
+        return updated;
+      }
+    }
+    const byOauth = await this.getUserByOAuthId(oauthId);
+    if (byOauth) return byOauth;
+    const id = randomUUID();
+    const username = firstName ? `${firstName}${lastName ? '_' + lastName : ''}_${id.slice(0, 4)}` : `user_${id.slice(0, 8)}`;
+    const user: User = {
+      id, username, email: email || `${oauthId}@oauth.local`, password: "oauth_no_password",
+      isActive: true, activationCode: null, oauthId, oauthProvider, profileImageUrl,
+      preferredLanguage: "fr", educationLevel: null, interests: null,
+      level: "curieux", xp: 0, streak: 0, onboardingCompleted: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(id, user);
+    return user;
   }
 }
 

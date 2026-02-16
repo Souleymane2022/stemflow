@@ -607,4 +607,47 @@ export class DatabaseStorage implements IStorage {
       .set({ password: hashedPassword })
       .where(eq(users.id, userId));
   }
+
+  async getUserByOAuthId(oauthId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.oauthId, oauthId));
+    return user;
+  }
+
+  async createOrLinkOAuthUser(oauthId: string, oauthProvider: string, email: string | null, firstName: string | null, lastName: string | null, profileImageUrl: string | null): Promise<User> {
+    if (email) {
+      const existing = await this.getUserByEmail(email);
+      if (existing) {
+        const [updated] = await db.update(users)
+          .set({ oauthId, oauthProvider, profileImageUrl: profileImageUrl || existing.profileImageUrl })
+          .where(eq(users.id, existing.id))
+          .returning();
+        return updated;
+      }
+    }
+    const byOauth = await this.getUserByOAuthId(oauthId);
+    if (byOauth) return byOauth;
+
+    const id = randomUUID();
+    const username = firstName ? `${firstName}${lastName ? '_' + lastName : ''}_${id.slice(0, 4)}` : `user_${id.slice(0, 8)}`;
+    const [created] = await db.insert(users).values({
+      id,
+      username,
+      email: email || `${oauthId}@oauth.local`,
+      password: "oauth_no_password",
+      isActive: true,
+      activationCode: null,
+      oauthId,
+      oauthProvider,
+      profileImageUrl,
+      preferredLanguage: "fr",
+      educationLevel: null,
+      interests: null,
+      level: "curieux",
+      xp: 0,
+      streak: 0,
+      onboardingCompleted: false,
+      createdAt: new Date().toISOString(),
+    }).returning();
+    return created;
+  }
 }

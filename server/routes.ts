@@ -22,6 +22,33 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimit(windowMs: number, maxAttempts: number) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const key = `${req.path}:${ip}`;
+    const now = Date.now();
+    const entry = rateLimitStore.get(key);
+    if (!entry || now > entry.resetAt) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    if (entry.count >= maxAttempts) {
+      return res.status(429).json({ error: "Trop de tentatives. Veuillez réessayer plus tard." });
+    }
+    entry.count++;
+    next();
+  };
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimitStore.entries()) {
+    if (now > val.resetAt) rateLimitStore.delete(key);
+  }
+}, 60000);
+
 const joinRoomSchema = z.object({
   userId: z.string().min(1),
   role: z.enum(["apprenant", "challenger", "mentor", "moderateur"]).optional().default("apprenant"),
@@ -92,7 +119,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  app.post("/api/auth/register", async (req, res) => {
+  app.post("/api/auth/register", rateLimit(60000, 5), async (req, res) => {
     try {
       const validation = registerSchema.safeParse(req.body);
       if (!validation.success) {
@@ -143,7 +170,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", rateLimit(60000, 10), async (req, res) => {
     try {
       const validation = loginSchema.safeParse(req.body);
       if (!validation.success) {
@@ -201,7 +228,7 @@ export async function registerRoutes(
 
   const resetRateLimit = new Map<string, number>();
 
-  app.post("/api/auth/forgot-password", async (req, res) => {
+  app.post("/api/auth/forgot-password", rateLimit(60000, 3), async (req, res) => {
     try {
       const validation = forgotPasswordSchema.safeParse(req.body);
       if (!validation.success) {
@@ -237,7 +264,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/auth/reset-password", async (req, res) => {
+  app.post("/api/auth/reset-password", rateLimit(60000, 5), async (req, res) => {
     try {
       const validation = resetPasswordSchema.safeParse(req.body);
       if (!validation.success) {

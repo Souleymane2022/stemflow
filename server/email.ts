@@ -38,12 +38,21 @@ async function getUncachableResendClient() {
   };
 }
 
+function getBaseUrl(): string {
+  if (process.env.REPLIT_DEPLOYMENT_URL) {
+    return process.env.REPLIT_DEPLOYMENT_URL;
+  }
+  const domain = process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS;
+  if (domain) {
+    return 'https://' + domain.split(',')[0];
+  }
+  return 'http://localhost:5000';
+}
+
 export async function sendPasswordResetEmail(toEmail: string, resetToken: string, username: string) {
   const { client, fromEmail } = await getUncachableResendClient();
 
-  const resetUrl = `${process.env.REPLIT_DEV_DOMAIN
-    ? 'https://' + process.env.REPLIT_DEV_DOMAIN
-    : 'http://localhost:5000'}/auth?reset=${resetToken}`;
+  const resetUrl = `${getBaseUrl()}/auth?reset=${resetToken}`;
 
   await client.emails.send({
     from: fromEmail || 'STEM FLOW <onboarding@resend.dev>',
