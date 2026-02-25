@@ -1,7 +1,9 @@
 import { db } from "./db";
 import {
-  rooms, users, contents, quizQuestions, missions,
-  commentsTable, badges, activities, roomPosts
+  rooms, users, contents, quizQuestions, quizAttempts, missions,
+  commentsTable, badges, userBadges, activities, roomPosts, follows,
+  notifications, videoEngagements, engagementStats, contentLikes,
+  commentLikes, roomPostLikes, roomMembers, passwordResetTokens
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
 
@@ -57,15 +59,26 @@ const generateUsers = (count: number) => {
 export async function seedDatabase() {
   try {
     console.log("Clearing existing database entries to force fresh African content seed...");
-    await db.delete(commentsTable);
-    await db.delete(activities);
+    await db.delete(passwordResetTokens);
+    await db.delete(roomPostLikes);
+    await db.delete(commentLikes);
+    await db.delete(contentLikes);
+    await db.delete(engagementStats);
+    await db.delete(videoEngagements);
+    await db.delete(notifications);
     await db.delete(roomPosts);
-    await db.delete(quizQuestions);
-    await db.delete(badges);
+    await db.delete(activities);
+    await db.delete(follows);
     await db.delete(missions);
+    await db.delete(roomMembers);
+    await db.delete(rooms);
+    await db.delete(userBadges);
+    await db.delete(badges);
+    await db.delete(commentsTable);
+    await db.delete(quizAttempts);
+    await db.delete(quizQuestions);
     await db.delete(contents);
     await db.delete(users);
-    await db.delete(rooms);
 
     const newUsers = generateUsers(150);
 

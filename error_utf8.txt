@@ -1,0 +1,75 @@
+﻿Starting server initialization sequence...
+Running database migrations...
+node : Warning: migration failed, relying on existing schema 
+or db will fail. vn [DrizzleError]: Failed to run the query 
+'CREATE TABLE `activities` (
+Au caractère Ligne:1 : 1
++ node dist/index.cjs > error.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: migrat.. 
+   . `activities` (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`username` text NOT NULL,
+	`activity_type` text NOT NULL,
+	`description` text NOT NULL,
+	`metadata` text,
+	`created_at` text NOT NULL
+);
+'
+    at bp.run (C:\Users\Hp\Downloads\Attached-Assets\Attached-A
+ssets\dist\index.cjs:79:19795)
+    at da.migrate (C:\Users\Hp\Downloads\Attached-Assets\Attach
+ed-Assets\dist\index.cjs:73:221)
+    ... 2 lines matching cause stack trace ...
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:105:5) {
+  cause: SqliteError: table `activities` already exists
+      at Database.prepare (C:\Users\Hp\Downloads\Attached-Asset
+s\Attached-Assets\node_modules\better-sqlite3\lib\methods\wrapp
+ers.js:5:21)
+      at bp.prepareQuery (C:\Users\Hp\Downloads\Attached-Assets
+\Attached-Assets\dist\index.cjs:79:22068)
+      at bp.prepareOneTimeQuery (C:\Users\Hp\Downloads\Attached
+-Assets\Attached-Assets\dist\index.cjs:79:19657)
+      at bp.run (C:\Users\Hp\Downloads\Attached-Assets\Attached
+-Assets\dist\index.cjs:79:19735)
+      at da.migrate (C:\Users\Hp\Downloads\Attached-Assets\Atta
+ched-Assets\dist\index.cjs:73:221)
+      at MD (C:\Users\Hp\Downloads\Attached-Assets\Attached-Ass
+ets\dist\index.cjs:91:36350)
+      at C:\Users\Hp\Downloads\Attached-Assets\Attached-Assets\
+dist\index.cjs:189:52852
+      at process.processTicksAndRejections 
+(node:internal/process/task_queues:105:5) {
+    code: 'SQLITE_ERROR'
+  }
+}
+Clearing existing database entries to force fresh African content seed...
+Database seeded successfully with 150+ African users and viral STEM contents!
+Database seeded successfully.
+node:events:497
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] 
+(node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:90:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 5000
+}
+
+Node.js v22.19.0
