@@ -80,7 +80,7 @@ export default function Achievements() {
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between gap-3 p-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/profile")} data-testid="button-back">
+            <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/profile")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -93,7 +93,7 @@ export default function Achievements() {
       </header>
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
-        <Card className="p-4 bg-gradient-to-br from-primary/5 to-accent/5">
+        <Card className="glass-panel premium-shadow border-0 p-4 bg-gradient-to-br from-primary/5 to-accent/5">
           <div className="flex items-center gap-4 mb-4">
             <div className={`p-3 rounded-full bg-gradient-to-br ${currentLeague.gradient}`}>
               <LeagueIcon className="h-6 w-6 text-white" />
@@ -146,7 +146,7 @@ export default function Achievements() {
           };
 
           return (
-            <Card key={category} className="p-4">
+            <Card key={category} className="glass-panel premium-shadow border-0 p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <div className={`p-1.5 rounded-md bg-gradient-to-br ${badgeCategoryColors[category]}`}>
                   <Trophy className="h-3.5 w-3.5 text-white" />
@@ -196,7 +196,7 @@ export default function Achievements() {
         })}
 
         {(loadingBadges || loadingUserBadges) && (
-          <Card className="p-4 space-y-3">
+          <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
             <Skeleton className="h-6 w-40" />
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (

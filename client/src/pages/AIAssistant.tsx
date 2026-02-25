@@ -102,7 +102,7 @@ export default function AIAssistant() {
           </div>
           <div className="flex items-center gap-2">
             {messages.length > 0 && (
-              <Button variant="ghost" size="icon" onClick={clearChat} data-testid="button-clear-chat">
+              <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={clearChat} data-testid="button-clear-chat">
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
@@ -243,7 +243,7 @@ export default function AIAssistant() {
             data-testid="input-chat-message"
           />
           <Button
-            className="gradient-stem text-white self-end"
+            className="interactive-element hover-elevate gradient-stem text-white self-end"
             disabled={!input.trim() || assistantMutation.isPending}
             onClick={handleSend}
             data-testid="button-send-message"

@@ -127,14 +127,14 @@ export default function UserProfile() {
       <div className="min-h-screen bg-background pb-20">
         <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
           <div className="flex items-center gap-3 p-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
+            <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Skeleton className="h-6 w-32" />
           </div>
         </header>
         <main className="p-4 space-y-4 max-w-lg mx-auto">
-          <Card className="p-6">
+          <Card className="glass-panel premium-shadow border-0 p-6">
             <div className="flex items-center gap-4">
               <Skeleton className="h-20 w-20 rounded-full" />
               <div className="space-y-2 flex-1">
@@ -155,7 +155,7 @@ export default function UserProfile() {
       <div className="min-h-screen bg-background pb-20">
         <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
           <div className="flex items-center gap-3 p-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
+            <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-xl font-bold">Utilisateur introuvable</h1>
@@ -170,7 +170,7 @@ export default function UserProfile() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center gap-3 p-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
+          <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/community")} data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-bold truncate" data-testid="text-profile-username">{user.username}</h1>
@@ -179,7 +179,7 @@ export default function UserProfile() {
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="p-6">
+          <Card className="glass-panel premium-shadow border-0 p-6">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-20 h-20 rounded-full gradient-stem flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-2xl font-bold" data-testid="text-avatar-initials">
@@ -221,7 +221,7 @@ export default function UserProfile() {
 
             {!isOwnProfile && (
               <Button
-                className={`w-full ${!isFollowing ? "gradient-stem text-white" : ""}`}
+                className={`interactive-element hover-elevate w-full ${!isFollowing ? "gradient-stem text-white" : ""}`}
                 variant={isFollowing ? "outline" : "default"}
                 onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
                 disabled={followMutation.isPending || unfollowMutation.isPending}
@@ -245,7 +245,7 @@ export default function UserProfile() {
 
         {user.interests && user.interests.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="p-4">
+            <Card className="glass-panel premium-shadow border-0 p-4">
               <h3 className="font-semibold mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
                 Centres d'intérêt
@@ -270,7 +270,7 @@ export default function UserProfile() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4 text-accent" />
               Activité récente

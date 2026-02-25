@@ -85,7 +85,7 @@ export default function QuizPlayer() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <p className="text-muted-foreground mb-4">Aucune question disponible.</p>
-        <Button onClick={() => setLocation("/feed")} data-testid="button-back-feed">
+        <Button className="interactive-element hover-elevate" onClick={() => setLocation("/feed")} data-testid="button-back-feed">
           Retour au feed
         </Button>
       </div>
@@ -128,7 +128,7 @@ export default function QuizPlayer() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-lg mx-auto space-y-4 pt-8"
         >
-          <Card className="p-6 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-6 text-center">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -161,11 +161,11 @@ export default function QuizPlayer() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={resetQuiz} data-testid="button-retry">
+              <Button variant="outline" className="interactive-element hover-elevate flex-1" onClick={resetQuiz} data-testid="button-retry">
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Recommencer
               </Button>
-              <Button className="flex-1 gradient-stem text-white" onClick={() => setLocation("/feed")} data-testid="button-feed">
+              <Button className="interactive-element hover-elevate flex-1 gradient-stem text-white" onClick={() => setLocation("/feed")} data-testid="button-feed">
                 <Home className="h-4 w-4 mr-2" />
                 Feed
               </Button>
@@ -175,7 +175,7 @@ export default function QuizPlayer() {
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">Résultats détaillés</h3>
             {quizResult.questions.map((q: any, i: number) => (
-              <Card key={i} className="p-4" data-testid={`result-question-${i}`}>
+              <Card key={i} className="glass-panel premium-shadow border-0 p-4" data-testid={`result-question-${i}`}>
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 p-1 rounded-full ${q.isCorrect ? "bg-accent/20" : "bg-destructive/20"}`}>
                     {q.isCorrect ? (
@@ -211,7 +211,7 @@ export default function QuizPlayer() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="flex items-center gap-3 p-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
+          <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
@@ -233,7 +233,7 @@ export default function QuizPlayer() {
             exit={{ opacity: 0, x: -50 }}
             className="space-y-4"
           >
-            <Card className="p-6">
+            <Card className="glass-panel premium-shadow border-0 p-6">
               <h2 className="text-lg font-bold mb-6" data-testid={`text-question-${currentIndex}`}>
                 {currentQuestion.question}
               </h2>
@@ -267,7 +267,7 @@ export default function QuizPlayer() {
             </Card>
 
             <Button
-              className="w-full gradient-stem text-white"
+              className="interactive-element hover-elevate w-full gradient-stem text-white"
               disabled={selectedAnswers[currentIndex] === undefined}
               onClick={goNext}
               data-testid="button-next-question"

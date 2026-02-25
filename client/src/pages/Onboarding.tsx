@@ -302,7 +302,7 @@ export default function Onboarding() {
           <StemFlowSlogan className="text-center mt-2 text-muted-foreground" />
         </motion.div>
 
-        <Card className="w-full max-w-md p-6">
+        <Card className="glass-panel premium-shadow border-0 w-full max-w-md p-6">
           <div className="mb-6">
             <div className="relative flex justify-between mb-4">
               <div className="absolute top-5 left-5 right-5 h-0.5 bg-muted" />

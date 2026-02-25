@@ -48,7 +48,7 @@ export function DailyQuestsWidget() {
   if (quests.length === 0) return null;
 
   return (
-    <Card className="p-4">
+    <Card className="glass-panel premium-shadow border-0 p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
         <h3 className="font-semibold flex items-center gap-2">
           <Gift className="h-4 w-4 text-[#F5B700]" />

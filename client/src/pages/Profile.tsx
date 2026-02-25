@@ -121,7 +121,7 @@ export default function Profile() {
           <h1 className="text-xl font-bold">Mon Profil</h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" data-testid="button-settings">
+            <Button className="interactive-element hover-elevate" variant="ghost" size="icon" data-testid="button-settings">
               <Settings className="h-5 w-5" />
             </Button>
           </div>
@@ -129,7 +129,7 @@ export default function Profile() {
       </header>
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
-        <Card className="p-6">
+        <Card className="glass-panel premium-shadow border-0 p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-shrink-0">
               <svg className="w-[88px] h-[88px] -rotate-90" viewBox="0 0 88 88">
@@ -202,7 +202,7 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Star className="h-4 w-4 text-accent" />
             Centres d'intérêt
@@ -228,7 +228,7 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="p-4 bg-gradient-to-br from-primary/5 to-accent/5">
+        <Card className="glass-panel premium-shadow border-0 p-4 bg-gradient-to-br from-primary/5 to-accent/5">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-accent" />
             Statistiques
@@ -251,13 +251,13 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h3 className="font-semibold flex items-center gap-2">
               <Brain className="h-4 w-4 text-accent" />
               Profil Intelligent IA
             </h3>
-            <Button
+            <Button className="interactive-element hover-elevate"
               variant="outline"
               size="sm"
               onClick={() => smartProfileMutation.mutate()}
@@ -340,7 +340,7 @@ export default function Profile() {
           ) : null}
         </Card>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Trophy className="h-4 w-4 text-[#F5B700]" />
             Réalisations récentes
@@ -367,7 +367,7 @@ export default function Profile() {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Shield className="h-4 w-4 text-accent" />
             Ligue & Objets
@@ -397,7 +397,7 @@ export default function Profile() {
         <div className="grid grid-cols-3 gap-3">
           <Button
             variant="outline"
-            className="w-full"
+            className="interactive-element hover-elevate w-full"
             onClick={() => setLocation("/missions")}
             data-testid="button-missions"
           >
@@ -406,7 +406,7 @@ export default function Profile() {
           </Button>
           <Button
             variant="outline"
-            className="w-full"
+            className="interactive-element hover-elevate w-full"
             onClick={() => setLocation("/achievements")}
             data-testid="button-achievements"
           >
@@ -415,7 +415,7 @@ export default function Profile() {
           </Button>
           <Button
             variant="outline"
-            className="w-full"
+            className="interactive-element hover-elevate w-full"
             onClick={() => setLocation("/leaderboard")}
             data-testid="button-leaderboard"
           >
@@ -424,7 +424,7 @@ export default function Profile() {
           </Button>
         </div>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             Contacter l'équipe
@@ -446,7 +446,7 @@ export default function Profile() {
 
         <Button
           variant="outline"
-          className="w-full text-destructive"
+          className="interactive-element hover-elevate w-full text-destructive"
           onClick={handleLogout}
           data-testid="button-logout"
         >

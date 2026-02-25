@@ -219,7 +219,7 @@ export default function Auth() {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="p-6">
+        <Card className="glass-panel premium-shadow border-0 p-6">
           {(step === "login" || step === "register") && (
             <div className="flex items-center gap-1 mb-6">
               <button
@@ -298,7 +298,7 @@ export default function Auth() {
 
                       <Button
                         type="submit"
-                        className="w-full gradient-stem text-white"
+                        className="interactive-element hover-elevate w-full gradient-stem text-white"
                         disabled={isPending}
                         data-testid="button-forgot-submit"
                       >
@@ -348,7 +348,7 @@ export default function Auth() {
                       </p>
                       <Button
                         type="button"
-                        className="w-full gradient-stem text-white mt-3"
+                        className="interactive-element hover-elevate w-full gradient-stem text-white mt-3"
                         onClick={() => { setStep("login"); setResetSuccess(false); setNewPassword(""); }}
                         data-testid="button-go-to-login"
                       >
@@ -385,7 +385,7 @@ export default function Auth() {
 
                       <Button
                         type="submit"
-                        className="w-full gradient-stem text-white"
+                        className="interactive-element hover-elevate w-full gradient-stem text-white"
                         disabled={isPending || newPassword.length < 6}
                         data-testid="button-reset-submit"
                       >
@@ -464,7 +464,7 @@ export default function Auth() {
 
                   <Button
                     type="submit"
-                    className="w-full gradient-stem text-white"
+                    className="interactive-element hover-elevate w-full gradient-stem text-white"
                     disabled={isPending || activationCode.length !== 6}
                     data-testid="button-activate"
                   >
@@ -574,7 +574,7 @@ export default function Auth() {
 
                   <Button
                     type="submit"
-                    className="w-full gradient-stem text-white"
+                    className="interactive-element hover-elevate w-full gradient-stem text-white"
                     disabled={isPending}
                     data-testid="button-auth-submit"
                   >

@@ -60,7 +60,7 @@ export function CreateButton() {
                   </span>
                   <Button
                     size="icon"
-                    className={`${option.color} text-white rounded-full shadow-lg`}
+                    className={`interactive-element hover-elevate ${option.color} text-white rounded-full shadow-lg`}
                     onClick={() => {
                       setIsOpen(false);
                       setLocation(`/create/${option.type}`);

@@ -62,7 +62,7 @@ export default function Leaderboard() {
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
+            <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -84,7 +84,7 @@ export default function Leaderboard() {
       </header>
 
       <div className="mx-4 mt-3 mb-2">
-        <Card className={`p-3 bg-gradient-to-r ${currentLeague.gradient} text-white`}>
+        <Card className={`glass-panel premium-shadow border-0 p-3 bg-gradient-to-r ${currentLeague.gradient} text-white`}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
@@ -100,7 +100,7 @@ export default function Leaderboard() {
       <div className="px-4 py-2 overflow-x-auto">
         <div className="flex gap-2">
           {categoryFilters.map((cat) => (
-            <Button
+            <Button className="interactive-element hover-elevate"
               key={cat.value}
               variant={selectedCategory === cat.value ? "default" : "outline"}
               size="sm"
@@ -119,7 +119,7 @@ export default function Leaderboard() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Card key={i} className="p-4">
+              <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
@@ -133,7 +133,7 @@ export default function Leaderboard() {
         ) : (
           <>
             {topThree.length >= 3 && (
-              <Card className="p-6">
+              <Card className="glass-panel premium-shadow border-0 p-6">
                 <div className="flex items-end justify-center gap-4">
                   {[1, 0, 2].map((podiumIndex) => {
                     const entry = topThree[podiumIndex];
@@ -182,7 +182,7 @@ export default function Leaderboard() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="p-3" data-testid={`leaderboard-entry-${index + 4}`}>
+                  <Card className="glass-panel premium-shadow border-0 p-3" data-testid={`leaderboard-entry-${index + 4}`}>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-muted-foreground w-6 text-center">
                         {index + 4}
@@ -219,23 +219,23 @@ export default function Leaderboard() {
 
       <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t">
         <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2" onClick={() => setLocation("/feed")} data-testid="nav-feed">
+          <Button variant="ghost" className="interactive-element hover-elevate flex-col gap-1 h-auto py-2" onClick={() => setLocation("/feed")} data-testid="nav-feed">
             <Home className="h-5 w-5" />
             <span className="text-xs">Feed</span>
           </Button>
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2" onClick={() => setLocation("/rooms")} data-testid="nav-rooms">
+          <Button variant="ghost" className="interactive-element hover-elevate flex-col gap-1 h-auto py-2" onClick={() => setLocation("/rooms")} data-testid="nav-rooms">
             <Users className="h-5 w-5" />
             <span className="text-xs">Salons</span>
           </Button>
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2 text-primary" onClick={() => setLocation("/leaderboard")} data-testid="nav-leaderboard">
+          <Button variant="ghost" className="interactive-element hover-elevate flex-col gap-1 h-auto py-2 text-primary" onClick={() => setLocation("/leaderboard")} data-testid="nav-leaderboard">
             <Trophy className="h-5 w-5" />
             <span className="text-xs">Classement</span>
           </Button>
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2" onClick={() => setLocation("/missions")} data-testid="nav-missions">
+          <Button variant="ghost" className="interactive-element hover-elevate flex-col gap-1 h-auto py-2" onClick={() => setLocation("/missions")} data-testid="nav-missions">
             <Target className="h-5 w-5" />
             <span className="text-xs">Missions</span>
           </Button>
-          <Button variant="ghost" className="flex-col gap-1 h-auto py-2" onClick={() => setLocation("/profile")} data-testid="nav-profile">
+          <Button variant="ghost" className="interactive-element hover-elevate flex-col gap-1 h-auto py-2" onClick={() => setLocation("/profile")} data-testid="nav-profile">
             <User className="h-5 w-5" />
             <span className="text-xs">Profil</span>
           </Button>

@@ -87,7 +87,7 @@ export default function Missions() {
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <div className="grid grid-cols-2 gap-3">
-          <Card className="p-3 flex items-center gap-3">
+          <Card className="glass-panel premium-shadow border-0 p-3 flex items-center gap-3">
             <div className={`p-2 rounded-full bg-gradient-to-br ${currentLeague.gradient}`}>
               <Shield className="h-4 w-4 text-white" />
             </div>
@@ -96,7 +96,7 @@ export default function Missions() {
               <p className="text-xs text-muted-foreground">Tier {currentLeague.tier}</p>
             </div>
           </Card>
-          <Card className="p-3 flex items-center gap-3">
+          <Card className="glass-panel premium-shadow border-0 p-3 flex items-center gap-3">
             <div className="p-2 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500">
               <Snowflake className="h-4 w-4 text-white" />
             </div>
@@ -118,7 +118,7 @@ export default function Missions() {
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <Card key={i} className="p-4">
+                <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                   <div className="flex items-start gap-4">
                     <Skeleton className="h-12 w-12 rounded-lg" />
                     <div className="flex-1 space-y-2">
@@ -144,7 +144,7 @@ export default function Missions() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="p-4" data-testid={`mission-card-${mission.id}`}>
+                    <Card className="glass-panel premium-shadow border-0 p-4" data-testid={`mission-card-${mission.id}`}>
                       <div className="flex items-start gap-4">
                         <div className="p-3 rounded-lg gradient-stem">
                           <MissionIcon className="h-6 w-6 text-white" />
@@ -180,7 +180,7 @@ export default function Missions() {
               })}
             </div>
           ) : (
-            <Card className="p-8 text-center">
+            <Card className="glass-panel premium-shadow border-0 p-8 text-center">
               <div className="inline-flex p-4 rounded-full bg-muted mb-4">
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
               </div>
@@ -205,7 +205,7 @@ export default function Missions() {
                 return (
                   <Card
                     key={mission.id}
-                    className="p-4 opacity-60"
+                    className="glass-panel premium-shadow border-0 p-4 opacity-60"
                     data-testid={`mission-completed-${mission.id}`}
                   >
                     <div className="flex items-center gap-4">

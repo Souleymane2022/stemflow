@@ -229,7 +229,7 @@ export default function CreateContent() {
     <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="flex items-center gap-3 p-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
+          <Button className="interactive-element hover-elevate" variant="ghost" size="icon" onClick={() => setLocation("/feed")} data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2 flex-1">
@@ -239,7 +239,7 @@ export default function CreateContent() {
             <h1 className="text-lg font-bold">{config.label}</h1>
           </div>
           <Button
-            className="gradient-stem text-white"
+            className="interactive-element hover-elevate gradient-stem text-white"
             disabled={!isFormValid() || createMutation.isPending}
             onClick={handleSubmit}
             data-testid="button-publish"
@@ -251,7 +251,7 @@ export default function CreateContent() {
       </header>
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
-        <Card className="p-4 space-y-4">
+        <Card className="glass-panel premium-shadow border-0 p-4 space-y-4">
           <div>
             <label className="text-sm font-medium mb-1.5 block">Titre</label>
             <Input
@@ -276,7 +276,7 @@ export default function CreateContent() {
         </Card>
 
         {contentType === "text_post" && (
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <label className="text-sm font-medium mb-1.5 block">Contenu</label>
             <Textarea
               placeholder="Rédige ton article... (LaTeX supporté avec $formula$)"
@@ -290,12 +290,12 @@ export default function CreateContent() {
         )}
 
         {contentType === "image_post" && (
-          <Card className="p-4 space-y-3">
+          <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
             <label className="text-sm font-medium mb-1.5 block">Image</label>
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-2">Glisse une image ici ou clique pour upload</p>
-              <Button variant="outline" data-testid="button-upload-image">
+              <Button className="interactive-element hover-elevate" variant="outline" data-testid="button-upload-image">
                 Choisir une image
               </Button>
             </div>
@@ -312,12 +312,12 @@ export default function CreateContent() {
         )}
 
         {contentType === "video" && (
-          <Card className="p-4 space-y-3">
+          <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
             <label className="text-sm font-medium mb-1.5 block">Vidéo</label>
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Video className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-2">Format vertical, 60-120 secondes</p>
-              <Button variant="outline" data-testid="button-upload-video">
+              <Button className="interactive-element hover-elevate" variant="outline" data-testid="button-upload-video">
                 Choisir une vidéo
               </Button>
             </div>
@@ -336,11 +336,11 @@ export default function CreateContent() {
         {contentType === "quiz" && (
           <div className="space-y-4">
             {questions.map((q, qIndex) => (
-              <Card key={qIndex} className="p-4 space-y-3" data-testid={`quiz-question-${qIndex}`}>
+              <Card key={qIndex} className="glass-panel premium-shadow border-0 p-4 space-y-3" data-testid={`quiz-question-${qIndex}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-sm">Question {qIndex + 1}</h3>
                   {questions.length > 1 && (
-                    <Button
+                    <Button className="interactive-element hover-elevate"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeQuestion(qIndex)}
@@ -381,7 +381,7 @@ export default function CreateContent() {
                         data-testid={`input-option-${qIndex}-${oIndex}`}
                       />
                       {q.options.length > 2 && (
-                        <Button
+                        <Button className="interactive-element hover-elevate"
                           variant="ghost"
                           size="icon"
                           onClick={() => removeOption(qIndex, oIndex)}
@@ -392,7 +392,7 @@ export default function CreateContent() {
                     </div>
                   ))}
                   {q.options.length < 6 && (
-                    <Button
+                    <Button className="interactive-element hover-elevate"
                       variant="outline"
                       size="sm"
                       onClick={() => addOption(qIndex)}
@@ -417,7 +417,7 @@ export default function CreateContent() {
             <Button
               variant="outline"
               onClick={addQuestion}
-              className="w-full"
+              className="interactive-element hover-elevate w-full"
               data-testid="button-add-question"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -426,13 +426,13 @@ export default function CreateContent() {
           </div>
         )}
 
-        <Card className="p-4 space-y-3">
+        <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-semibold flex items-center gap-2 text-sm">
               <Brain className="h-4 w-4 text-accent" />
               Analyse IA
             </h3>
-            <Button
+            <Button className="interactive-element hover-elevate"
               variant="outline"
               size="sm"
               onClick={() => analyzeMutation.mutate()}
@@ -479,7 +479,7 @@ export default function CreateContent() {
           )}
         </Card>
 
-        <Card className="p-4 space-y-4">
+        <Card className="glass-panel premium-shadow border-0 p-4 space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Matière</label>
             <div className="grid grid-cols-2 gap-2">
@@ -534,7 +534,7 @@ export default function CreateContent() {
                 className="flex-1"
                 data-testid="input-tag"
               />
-              <Button variant="outline" onClick={addTag} data-testid="button-add-tag">
+              <Button className="interactive-element hover-elevate" variant="outline" onClick={addTag} data-testid="button-add-tag">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>

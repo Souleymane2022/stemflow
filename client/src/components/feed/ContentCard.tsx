@@ -625,7 +625,7 @@ export function ContentCard({
               </p>
               <Button
                 variant="secondary"
-                className="bg-white/20 text-white border-white/30"
+                className="interactive-element hover-elevate bg-white/20 text-white border-white/30"
                 data-testid={`button-play-quiz-${content.id}`}
               >
                 Commencer le quiz
@@ -744,7 +744,7 @@ export function ContentCard({
                 </motion.div>
                 <span className="ml-1 text-sm">{likeCount}</span>
               </Button>
-              <Button
+              <Button className="interactive-element hover-elevate"
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowComments(!showComments)}
@@ -755,7 +755,7 @@ export function ContentCard({
                 <span className="ml-1 text-sm">{commentCount}</span>
               </Button>
               <div className="relative">
-                <Button
+                <Button className="interactive-element hover-elevate"
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowShareMenu(!showShareMenu)}
@@ -895,7 +895,7 @@ export function ContentCard({
                     maxLength={500}
                     data-testid={`input-comment-${content.id}`}
                   />
-                  <Button
+                  <Button className="interactive-element hover-elevate"
                     type="submit"
                     size="icon"
                     disabled={!commentText.trim() || commentMutation.isPending}

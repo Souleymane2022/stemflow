@@ -103,13 +103,13 @@ export default function Dashboard() {
         <main className="p-4 space-y-4 max-w-lg mx-auto">
           <div className="grid grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Card key={i} className="p-3">
+              <Card key={i} className="glass-panel premium-shadow border-0 p-3">
                 <Skeleton className="h-4 w-12 mb-2" />
                 <Skeleton className="h-6 w-16" />
               </Card>
             ))}
           </div>
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <Skeleton className="h-4 w-32 mb-4" />
             <div className="space-y-3">
               {[1, 2, 3, 4].map(i => (
@@ -117,7 +117,7 @@ export default function Dashboard() {
               ))}
             </div>
           </Card>
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <Skeleton className="h-4 w-32 mb-4" />
             <Skeleton className="h-32 w-full" />
           </Card>
@@ -146,42 +146,42 @@ export default function Dashboard() {
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <div className="grid grid-cols-3 gap-3">
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Zap className="h-3.5 w-3.5 text-accent" />
               <span className="text-xs text-muted-foreground">XP Total</span>
             </div>
             <p className="text-xl font-bold" data-testid="text-total-xp">{stats.xp}</p>
           </Card>
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Flame className="h-3.5 w-3.5 text-[#F5B700]" />
               <span className="text-xs text-muted-foreground">Série</span>
             </div>
             <p className="text-xl font-bold" data-testid="text-streak-days">{stats.streak}j</p>
           </Card>
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs text-muted-foreground">Niveau</span>
             </div>
             <p className="text-sm font-bold" data-testid="text-level">{levelLabels[stats.level] || stats.level}</p>
           </Card>
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <BookOpen className="h-3.5 w-3.5 text-blue-500" />
               <span className="text-xs text-muted-foreground">Créés</span>
             </div>
             <p className="text-xl font-bold" data-testid="text-content-created">{stats.contentCreated}</p>
           </Card>
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Brain className="h-3.5 w-3.5 text-purple-500" />
               <span className="text-xs text-muted-foreground">Quiz</span>
             </div>
             <p className="text-xl font-bold" data-testid="text-avg-quiz-score">{stats.avgQuizScore}%</p>
           </Card>
-          <Card className="p-3 text-center">
+          <Card className="glass-panel premium-shadow border-0 p-3 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Award className="h-3.5 w-3.5 text-amber-500" />
               <span className="text-xs text-muted-foreground">Badges</span>
@@ -190,7 +190,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Target className="h-4 w-4 text-accent" />
             Répartition par catégorie
@@ -224,7 +224,7 @@ export default function Dashboard() {
         </Card>
 
         <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
               <Target className="h-4 w-4 text-accent" />
               Missions
@@ -259,7 +259,7 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground text-center mt-2">Complétées</p>
           </Card>
 
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm">
               <Trophy className="h-4 w-4 text-[#F5B700]" />
               Performance Quiz
@@ -280,7 +280,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card className="p-4">
+        <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Activity className="h-4 w-4 text-accent" />
             Activité de la semaine
@@ -298,7 +298,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="p-4 bg-gradient-to-br from-accent/5 to-primary/5">
+        <Card className="glass-panel premium-shadow border-0 p-4 bg-gradient-to-br from-accent/5 to-primary/5">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Lightbulb className="h-4 w-4 text-[#F5B700]" />
             Conseils d'apprentissage

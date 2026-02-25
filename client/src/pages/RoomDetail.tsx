@@ -193,10 +193,10 @@ export default function RoomDetail() {
   if (!room) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-md">
+        <Card className="glass-panel premium-shadow border-0 p-8 text-center max-w-md">
           <h2 className="text-xl font-bold mb-2">Salon introuvable</h2>
           <p className="text-muted-foreground mb-4">Ce salon n'existe pas ou a été supprimé.</p>
-          <Button onClick={() => setLocation("/rooms")} data-testid="button-back-rooms">
+          <Button className="interactive-element hover-elevate" onClick={() => setLocation("/rooms")} data-testid="button-back-rooms">
             Retour aux salons
           </Button>
         </Card>
@@ -219,7 +219,7 @@ export default function RoomDetail() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b">
         <div className="flex items-center gap-4 p-4">
-          <Button
+          <Button className="interactive-element hover-elevate"
             variant="ghost"
             size="icon"
             onClick={() => setLocation("/rooms")}
@@ -259,7 +259,7 @@ export default function RoomDetail() {
       <div className="p-4 border-b">
         <p className="text-muted-foreground">{room.description}</p>
         <Button
-          className="w-full mt-4 gradient-stem text-white"
+          className="interactive-element hover-elevate w-full mt-4 gradient-stem text-white"
           data-testid="button-join-room"
           onClick={() => joinRoomMutation.mutate()}
           disabled={joinRoomMutation.isPending}
@@ -286,7 +286,7 @@ export default function RoomDetail() {
         </TabsList>
 
         <TabsContent value="publications" className="mt-4 space-y-4">
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarFallback className="gradient-stem text-white text-sm">
@@ -303,7 +303,7 @@ export default function RoomDetail() {
                   data-testid="input-room-post"
                 />
                 <div className="flex justify-end">
-                  <Button
+                  <Button className="interactive-element hover-elevate"
                     onClick={handleSubmitPost}
                     disabled={!postText.trim() || createPostMutation.isPending}
                     data-testid="button-submit-post"
@@ -324,7 +324,7 @@ export default function RoomDetail() {
             </div>
           ) : roomPosts && roomPosts.length > 0 ? (
             roomPosts.map((post) => (
-              <Card key={post.id} className="p-4" data-testid={`room-post-${post.id}`}>
+              <Card key={post.id} className="glass-panel premium-shadow border-0 p-4" data-testid={`room-post-${post.id}`}>
                 <div className="flex items-start gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="gradient-stem text-white text-sm">
@@ -341,7 +341,7 @@ export default function RoomDetail() {
                     </div>
                     <p className="text-sm mt-1" data-testid={`text-post-${post.id}`}>{post.text}</p>
                     <div className="flex items-center gap-4 mt-3">
-                      <Button
+                      <Button className="interactive-element hover-elevate"
                         variant="ghost"
                         size="sm"
                         onClick={() => likePostMutation.mutate(post.id)}
@@ -358,7 +358,7 @@ export default function RoomDetail() {
               </Card>
             ))
           ) : (
-            <Card className="p-8 text-center">
+            <Card className="glass-panel premium-shadow border-0 p-8 text-center">
               <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-semibold mb-2">Pas encore de publications</h3>
               <p className="text-muted-foreground text-sm">
@@ -369,7 +369,7 @@ export default function RoomDetail() {
         </TabsContent>
 
         <TabsContent value="challenges" className="mt-4 space-y-4">
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <div className="flex items-center gap-4 mb-3">
               <div className="p-3 rounded-md gradient-stem">
                 <Swords className="h-6 w-6 text-white" />
@@ -385,7 +385,7 @@ export default function RoomDetail() {
             </div>
             <Button
               variant="outline"
-              className="w-full"
+              className="interactive-element hover-elevate w-full"
               data-testid="button-join-challenge"
               onClick={() => joinRoomMutation.mutate()}
               disabled={joinRoomMutation.isPending}
@@ -394,7 +394,7 @@ export default function RoomDetail() {
             </Button>
           </Card>
           
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <div className="flex items-center gap-4 mb-3">
               <div className="p-3 rounded-md bg-gradient-to-br from-purple-500 to-pink-500">
                 <Star className="h-6 w-6 text-white" />
@@ -410,7 +410,7 @@ export default function RoomDetail() {
             </div>
             <Button
               variant="outline"
-              className="w-full"
+              className="interactive-element hover-elevate w-full"
               data-testid="button-play-quiz"
               onClick={() => {
                 if (quizContent) {
@@ -426,7 +426,7 @@ export default function RoomDetail() {
         </TabsContent>
 
         <TabsContent value="leaderboard" className="mt-4">
-          <Card className="p-4">
+          <Card className="glass-panel premium-shadow border-0 p-4">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
               <Trophy className="h-5 w-5 text-yellow-500" />
               Top contributeurs

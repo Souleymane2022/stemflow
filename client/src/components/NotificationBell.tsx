@@ -80,7 +80,7 @@ export function NotificationBell() {
 
   return (
     <div className="relative">
-      <Button
+      <Button className="interactive-element hover-elevate"
         variant="ghost"
         size="icon"
         onClick={() => setOpen(!open)}
@@ -105,7 +105,7 @@ export function NotificationBell() {
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="absolute right-0 top-full mt-2 z-50 w-80 max-h-96 overflow-hidden"
             >
-              <Card className="p-0 overflow-hidden">
+              <Card className="glass-panel premium-shadow border-0 p-0 overflow-hidden">
                 <div className="flex items-center justify-between gap-2 p-3 border-b">
                   <h3 className="font-semibold text-sm">Notifications</h3>
                   {count > 0 && (

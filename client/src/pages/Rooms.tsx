@@ -75,7 +75,7 @@ export default function Rooms() {
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         {/* Create Room Button */}
         <Button
-          className="w-full gradient-stem text-white"
+          className="interactive-element hover-elevate w-full gradient-stem text-white"
           data-testid="button-create-room"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -85,7 +85,7 @@ export default function Rooms() {
         {isLoading ? (
           <>
             {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="p-4">
+              <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-14 w-14 rounded-lg" />
                   <div className="flex-1 space-y-2">
@@ -110,7 +110,7 @@ export default function Rooms() {
                 transition={{ delay: index * 0.1 }}
               >
                 <Card
-                  className="p-4 hover-elevate cursor-pointer"
+                  className="glass-panel premium-shadow border-0 p-4 hover-elevate cursor-pointer"
                   onClick={() => setLocation(`/rooms/${room.id}`)}
                   data-testid={`room-card-${room.id}`}
                 >

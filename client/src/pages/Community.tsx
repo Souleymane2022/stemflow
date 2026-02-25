@@ -116,7 +116,7 @@ export default function Community() {
                 data-testid="input-search-users"
               />
             </div>
-            <Button
+            <Button className="interactive-element hover-elevate"
               size="default"
               onClick={handleSearch}
               data-testid="button-search"
@@ -163,7 +163,7 @@ export default function Community() {
             {searchLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <Card key={i} className="p-4">
+                  <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-10 w-10 rounded-full" />
                       <div className="space-y-2 flex-1">
@@ -183,7 +183,7 @@ export default function Community() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card
-                    className="p-4 hover-elevate cursor-pointer"
+                    className="glass-panel premium-shadow border-0 p-4 hover-elevate cursor-pointer"
                     onClick={() => setLocation(`/user/${user.id}`)}
                     data-testid={`search-result-${user.id}`}
                   >
@@ -218,7 +218,7 @@ export default function Community() {
             {feedLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="p-4">
+                  <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-10 w-10 rounded-full" />
                       <div className="space-y-2 flex-1">
@@ -240,7 +240,7 @@ export default function Community() {
                     transition={{ delay: index * 0.05 }}
                   >
                     <Card
-                      className="p-4 hover-elevate cursor-pointer"
+                      className="glass-panel premium-shadow border-0 p-4 hover-elevate cursor-pointer"
                       onClick={() => setLocation(`/user/${activity.userId}`)}
                       data-testid={`activity-item-${activity.id}`}
                     >
@@ -277,7 +277,7 @@ export default function Community() {
                 <p className="text-muted-foreground text-sm mb-4">
                   Suivez des utilisateurs pour voir leur activité ici.
                 </p>
-                <Button
+                <Button className="interactive-element hover-elevate"
                   onClick={() => setActiveTab("discover")}
                   data-testid="button-discover-users"
                 >
@@ -295,7 +295,7 @@ export default function Community() {
             {leaderboardLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Card key={i} className="p-4">
+                  <Card key={i} className="glass-panel premium-shadow border-0 p-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-12 w-12 rounded-full" />
                       <div className="space-y-2 flex-1">
@@ -363,7 +363,7 @@ function DiscoverUserCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="p-4" data-testid={`discover-user-${entry.userId}`}>
+      <Card className="glass-panel premium-shadow border-0 p-4" data-testid={`discover-user-${entry.userId}`}>
         <div className="flex items-center gap-3">
           <Avatar
             className="h-12 w-12 cursor-pointer"
@@ -386,7 +386,7 @@ function DiscoverUserCard({
               </span>
             </div>
           </div>
-          <Button
+          <Button className="interactive-element hover-elevate"
             variant={isFollowing ? "outline" : "default"}
             size="sm"
             onClick={(e) => {
