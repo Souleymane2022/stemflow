@@ -39,6 +39,8 @@ const categoryColors = {
   mathematics: "from-green-500 to-emerald-400",
 };
 
+import { CreateRoomDialog } from "@/components/CreateRoomDialog";
+
 export default function Rooms() {
   const [, setLocation] = useLocation();
   const { xp, streak } = useUserState();
@@ -74,13 +76,15 @@ export default function Rooms() {
       {/* Rooms List */}
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         {/* Create Room Button */}
-        <Button
-          className="interactive-element hover-elevate w-full gradient-stem text-white"
-          data-testid="button-create-room"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Créer un salon
-        </Button>
+        <CreateRoomDialog>
+          <Button
+            className="interactive-element hover-elevate w-full gradient-stem text-white"
+            data-testid="button-create-room"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Créer un salon
+          </Button>
+        </CreateRoomDialog>
 
         {isLoading ? (
           <>
@@ -101,7 +105,7 @@ export default function Rooms() {
           rooms.map((room, index) => {
             const CategoryIcon = categoryIcons[room.category];
             const gradientColor = categoryColors[room.category];
-            
+
             return (
               <motion.div
                 key={room.id}

@@ -92,6 +92,34 @@ export default function CreateContent() {
     qualityIndicators: { clarity: number; accuracy: number; engagement: number; depth: number };
   } | null>(null);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+        toast({ title: "Image chargée", description: "L'image a été importée avec succès." });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        toast({ title: "Fichier trop volumineux", description: "La vidéo ne doit pas dépasser 50 Mo.", variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoUrl(reader.result as string);
+        toast({ title: "Vidéo chargée", description: "La vidéo a été importée avec succès." });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const analyzeMutation = useMutation({
     mutationFn: async () => {
       const contentText = contentType === "quiz"
@@ -292,12 +320,31 @@ export default function CreateContent() {
         {contentType === "image_post" && (
           <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
             <label className="text-sm font-medium mb-1.5 block">Image</label>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center">
-              <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-2">Glisse une image ici ou clique pour upload</p>
-              <Button className="interactive-element hover-elevate" variant="outline" data-testid="button-upload-image">
-                Choisir une image
-              </Button>
+            <div className="border-2 border-dashed rounded-lg p-8 text-center relative overflow-hidden group">
+              {imageUrl ? (
+                <div className="absolute inset-0">
+                  <img src={imageUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="secondary" size="sm" onClick={() => setImageUrl("")}>Changer l'image</Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-4">Glisse une image ici ou clique pour upload</p>
+                  <label className="cursor-pointer">
+                    <div className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 interactive-element hover-elevate">
+                      Choisir une image
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Ou URL de l'image</label>
@@ -314,12 +361,33 @@ export default function CreateContent() {
         {contentType === "video" && (
           <Card className="glass-panel premium-shadow border-0 p-4 space-y-3">
             <label className="text-sm font-medium mb-1.5 block">Vidéo</label>
-            <div className="border-2 border-dashed rounded-lg p-8 text-center">
-              <Video className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-2">Format vertical, 60-120 secondes</p>
-              <Button className="interactive-element hover-elevate" variant="outline" data-testid="button-upload-video">
-                Choisir une vidéo
-              </Button>
+            <div className="border-2 border-dashed rounded-lg p-8 text-center relative overflow-hidden group">
+              {videoUrl && videoUrl.startsWith('data:') ? (
+                <div className="absolute inset-0 bg-black flex items-center justify-center">
+                  <video src={videoUrl} controls className="max-h-full max-w-full" />
+                  <div className="absolute top-2 right-2">
+                    <Button variant="destructive" size="sm" onClick={() => setVideoUrl("")}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Video className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-4">Format MP4/WebM, 50Mo max</p>
+                  <label className="cursor-pointer">
+                    <div className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 interactive-element hover-elevate">
+                      Choisir une vidéo locale
+                    </div>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      className="hidden"
+                      onChange={handleVideoUpload}
+                    />
+                  </label>
+                </>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Ou URL de la vidéo</label>
@@ -363,11 +431,10 @@ export default function CreateContent() {
                     <div key={oIndex} className="flex items-center gap-2">
                       <button
                         type="button"
-                        className={`flex-shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          q.correctOptionIndex === oIndex
-                            ? "border-accent bg-accent text-white"
-                            : "border-muted-foreground/30"
-                        }`}
+                        className={`flex-shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${q.correctOptionIndex === oIndex
+                          ? "border-accent bg-accent text-white"
+                          : "border-muted-foreground/30"
+                          }`}
                         onClick={() => updateQuestion(qIndex, "correctOptionIndex", oIndex)}
                         data-testid={`button-correct-${qIndex}-${oIndex}`}
                       >
@@ -487,11 +554,10 @@ export default function CreateContent() {
                 <button
                   key={cat.value}
                   type="button"
-                  className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
-                    category === cat.value
-                      ? "border-accent bg-accent/10"
-                      : "border-border"
-                  }`}
+                  className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${category === cat.value
+                    ? "border-accent bg-accent/10"
+                    : "border-border"
+                    }`}
                   onClick={() => setCategory(cat.value)}
                   data-testid={`button-category-${cat.value}`}
                 >
@@ -509,11 +575,10 @@ export default function CreateContent() {
                 <button
                   key={diff.value}
                   type="button"
-                  className={`flex-1 p-2.5 rounded-lg border text-sm transition-colors ${
-                    difficulty === diff.value
-                      ? "border-accent bg-accent/10 font-medium"
-                      : "border-border"
-                  }`}
+                  className={`flex-1 p-2.5 rounded-lg border text-sm transition-colors ${difficulty === diff.value
+                    ? "border-accent bg-accent/10 font-medium"
+                    : "border-border"
+                    }`}
                   onClick={() => setDifficulty(diff.value)}
                   data-testid={`button-difficulty-${diff.value}`}
                 >
