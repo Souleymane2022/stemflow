@@ -1,7 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+
+console.log("🚀 Starting STEM Flow application...");
+console.log("Environment PORT:", process.env.PORT);
+console.log("Environment NODE_ENV:", process.env.NODE_ENV);
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
-import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
