@@ -160,7 +160,7 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
             ref={(el) => {
               if (el && !videoRef[0]) {
                 videoRef[0] = el;
-                el.play().catch(() => {});
+                el.play().catch(() => { });
               }
             }}
             src={url}
@@ -520,7 +520,7 @@ export function ContentCard({
         toast({ title: "Partagé !", description: "Contenu partagé avec succès" });
         setShowShareMenu(false);
         return;
-      } catch {}
+      } catch { }
     }
 
     const encodedUrl = encodeURIComponent(shareUrl);
@@ -560,7 +560,7 @@ export function ContentCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-visible" data-testid={`content-card-${content.id}`}>
+      <Card className="overflow-visible glass-panel premium-shadow border-border/40 rounded-2xl" data-testid={`content-card-${content.id}`}>
         <div className="p-4 pb-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border-2 border-primary/20">
@@ -651,10 +651,10 @@ export function ContentCard({
             </p>
           )}
 
-          {content.tags && content.tags.length > 0 && (
+          {Array.isArray(content.tags) && content.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
-              {content.tags.map((tag) => (
-                <span key={tag} className="text-xs text-accent font-medium">{tag}</span>
+              {(content.tags as string[]).map((tag: string) => (
+                <span key={tag} className="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-xs text-accent font-medium">{tag}</span>
               ))}
             </div>
           )}
@@ -662,17 +662,17 @@ export function ContentCard({
           {content.roomName && (
             <button
               onClick={onJoinRoom}
-              className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 mb-3 w-full text-left hover-elevate"
+              className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-muted/20 mb-4 w-full text-left interactive-element group hover:bg-muted/40"
               data-testid={`button-join-room-${content.roomId}`}
             >
-              <div className={`p-1.5 rounded-md bg-gradient-to-br ${gradientColor}`}>
-                <Users className="h-4 w-4 text-white" />
+              <div className={`p-2 rounded-lg bg-gradient-to-br ${gradientColor} group-hover:scale-110 transition-transform shadow-inner`}>
+                <Users className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{content.roomName}</p>
-                <p className="text-xs text-muted-foreground">Rejoindre le salon</p>
+                <p className="text-sm font-semibold truncate">{content.roomName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Rejoindre le salon</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
             </button>
           )}
 
@@ -931,6 +931,6 @@ export function ContentCard({
           </AnimatePresence>
         </div>
       </Card>
-    </motion.div>
+    </motion.div >
   );
 }

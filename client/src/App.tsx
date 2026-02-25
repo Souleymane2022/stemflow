@@ -47,11 +47,35 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="h-8 w-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground text-sm">Chargement...</p>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="h-14 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-4">
+          <div className="h-6 w-24 rounded-md skeleton-shimmer" />
+          <div className="ml-auto flex gap-2">
+            <div className="h-8 w-8 rounded-full skeleton-shimmer" />
+            <div className="h-8 w-8 rounded-full skeleton-shimmer" />
+          </div>
+        </header>
+        <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+          <div className="space-y-2">
+            <div className="h-8 w-48 rounded-md skeleton-shimmer" />
+            <div className="h-4 w-72 rounded-md skeleton-shimmer opacity-70" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-border/40 p-4 space-y-4 shadow-sm bg-card/50">
+                <div className="h-40 rounded-lg skeleton-shimmer w-full" />
+                <div className="space-y-2">
+                  <div className="h-5 w-3/4 rounded-md skeleton-shimmer" />
+                  <div className="h-4 w-1/2 rounded-md skeleton-shimmer opacity-70" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <div className="h-8 w-16 rounded-full skeleton-shimmer" />
+                  <div className="h-8 w-16 rounded-full skeleton-shimmer" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }

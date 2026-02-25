@@ -45,9 +45,13 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Decorative gradient background glows */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-border/40">
         <div className="flex items-center justify-between p-4 max-w-lg mx-auto">
           <StemFlowLogo size="sm" />
           <ThemeToggle />
@@ -55,7 +59,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <main className="pt-20 pb-32">
+      <main className="pt-24 pb-32 relative z-10">
         <div className="px-6 py-12 text-center max-w-lg mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -77,12 +81,14 @@ export default function Home() {
 
             <Button
               size="lg"
-              className="gradient-stem text-white text-lg px-8 py-6"
+              className="gradient-stem text-white text-lg px-8 py-6 rounded-2xl premium-shadow interactive-element group"
               onClick={() => setLocation("/onboarding")}
               data-testid="button-start"
             >
-              Commencer l'aventure
-              <ChevronRight className="h-5 w-5 ml-2" />
+              <span className="relative z-10 flex items-center">
+                Commencer l'aventure
+                <ChevronRight className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
+              </span>
             </Button>
           </motion.div>
         </div>
@@ -97,14 +103,14 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + index * 0.1 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-card border"
+                className="flex items-center gap-4 p-5 rounded-2xl glass-panel premium-shadow interactive-element cursor-pointer group hover:bg-white/5"
               >
-                <div className={`p-3 rounded-lg ${feature.gradient}`}>
+                <div className={`p-3.5 rounded-xl shadow-inner ${feature.gradient} group-hover:scale-110 transition-transform`}>
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h3 className="font-semibold text-lg">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">{feature.description}</p>
                 </div>
               </motion.div>
             );
@@ -136,15 +142,15 @@ export default function Home() {
       </main>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-4 glass-panel border-t border-border/40 z-50">
         <div className="max-w-lg mx-auto">
           <Button
-            className="w-full gradient-stem text-white"
+            className="w-full gradient-stem text-white rounded-2xl py-6 text-lg premium-shadow interactive-element group"
             size="lg"
             onClick={() => setLocation("/onboarding")}
             data-testid="button-start-bottom"
           >
-            <Sparkles className="h-5 w-5 mr-2" />
+            <Sparkles className="h-5 w-5 mr-2 group-hover:animate-pulse" />
             Rejoindre STEM FLOW
           </Button>
         </div>

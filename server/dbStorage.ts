@@ -13,7 +13,7 @@ import {
   type PasswordResetToken,
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, desc, asc, sql, ilike, inArray, isNull, count } from "drizzle-orm";
+import { eq, and, desc, asc, sql, like, inArray, isNull, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export class DatabaseStorage implements IStorage {
@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(contentLikes)
         .where(and(eq(contentLikes.contentId, contentId), eq(contentLikes.userId, userId)));
       await db.update(contents)
-        .set({ likes: sql`GREATEST(${contents.likes} - 1, 0)` })
+        .set({ likes: sql`MAX(${contents.likes} - 1, 0)` })
         .where(eq(contents.id, contentId));
       const [updated] = await db.select().from(contents).where(eq(contents.id, contentId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
@@ -179,7 +179,7 @@ export class DatabaseStorage implements IStorage {
 
   async decrementCommentCount(contentId: string): Promise<void> {
     await db.update(contents)
-      .set({ comments: sql`GREATEST(${contents.comments} - 1, 0)` })
+      .set({ comments: sql`MAX(${contents.comments} - 1, 0)` })
       .where(eq(contents.id, contentId));
   }
 
@@ -268,7 +268,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(commentLikes)
         .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.userId, userId)));
       await db.update(commentsTable)
-        .set({ likes: sql`GREATEST(${commentsTable.likes} - 1, 0)` })
+        .set({ likes: sql`MAX(${commentsTable.likes} - 1, 0)` })
         .where(eq(commentsTable.id, commentId));
       const [updated] = await db.select().from(commentsTable).where(eq(commentsTable.id, commentId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
@@ -454,7 +454,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(roomPostLikes)
         .where(and(eq(roomPostLikes.postId, postId), eq(roomPostLikes.userId, userId)));
       await db.update(roomPosts)
-        .set({ likes: sql`GREATEST(${roomPosts.likes} - 1, 0)` })
+        .set({ likes: sql`MAX(${roomPosts.likes} - 1, 0)` })
         .where(eq(roomPosts.id, postId));
       const [updated] = await db.select().from(roomPosts).where(eq(roomPosts.id, postId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
@@ -536,7 +536,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchUsers(query: string): Promise<User[]> {
-    return db.select().from(users).where(ilike(users.username, `%${query}%`));
+    return db.select().from(users).where(like(users.username, `%${query}%`));
   }
 
   async getNotifications(userId: string): Promise<Notification[]> {
@@ -599,7 +599,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpiredTokens(): Promise<void> {
     await db.delete(passwordResetTokens)
-      .where(sql`${passwordResetTokens.expiresAt} < NOW()`);
+      .where(sql`${passwordResetTokens.expiresAt} < CURRENT_TIMESTAMP`);
   }
 
   async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {

@@ -7,8 +7,8 @@ import { sql } from "drizzle-orm";
 
 export async function seedDatabase() {
   try {
-    const result = await db.execute(sql`SELECT count(*)::int as count FROM rooms`);
-    const count = (result.rows[0] as any)?.count ?? 0;
+    const result = await db.select({ count: sql<number>`count(*)` }).from(rooms);
+    const count = result[0]?.count ?? 0;
     if (count > 0) {
       console.log("Database already seeded, skipping...");
       return;

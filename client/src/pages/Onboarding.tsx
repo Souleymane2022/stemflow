@@ -116,7 +116,7 @@ export default function Onboarding() {
               onboardingCompleted: true,
             }),
           });
-        } catch {}
+        } catch { }
       }
       setProfile(formData as UserProfile);
       setOnboardingCompleted(true);
@@ -158,14 +158,13 @@ export default function Onboarding() {
                   key={lang.value}
                   onClick={() => setFormData({ ...formData, preferredLanguage: lang.value as any })}
                   data-testid={`button-language-${lang.value}`}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 hover-elevate ${
-                    formData.preferredLanguage === lang.value
-                      ? "border-accent bg-accent/10"
-                      : "border-border bg-card"
-                  }`}
+                  className={`p-4 rounded-xl border transition-all duration-300 flex items-center gap-4 interactive-element group ${formData.preferredLanguage === lang.value
+                    ? "border-accent bg-accent/15 premium-shadow"
+                    : "border-border/40 glass-panel hover:bg-white/5"
+                    }`}
                 >
-                  <div className={`p-2 rounded-full ${lang.value === "fr" ? "bg-gradient-to-br from-blue-500 via-white to-red-500" : "bg-gradient-to-br from-blue-600 via-white to-red-600"}`}>
-                    <Globe className="h-5 w-5 text-primary" />
+                  <div className={`p-2.5 rounded-xl shadow-inner group-hover:scale-110 transition-transform ${lang.value === "fr" ? "bg-gradient-stem" : "bg-gradient-energy"}`}>
+                    <Globe className="h-5 w-5 text-white" />
                   </div>
                   <span className="font-semibold text-lg">{lang.label}</span>
                   {formData.preferredLanguage === lang.value && (
@@ -190,11 +189,10 @@ export default function Onboarding() {
                   key={edu.value}
                   onClick={() => setFormData({ ...formData, educationLevel: edu.value as any })}
                   data-testid={`button-education-${edu.value}`}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-left hover-elevate ${
-                    formData.educationLevel === edu.value
-                      ? "border-accent bg-accent/10"
-                      : "border-border bg-card"
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 text-left hover-elevate ${formData.educationLevel === edu.value
+                    ? "border-accent bg-accent/10"
+                    : "border-border bg-card"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -227,11 +225,10 @@ export default function Onboarding() {
                     key={interest.value}
                     onClick={() => toggleInterest(interest.value)}
                     data-testid={`button-interest-${interest.value}`}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover-elevate ${
-                      isSelected
-                        ? "border-accent bg-accent/10"
-                        : "border-border bg-card"
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover-elevate ${isSelected
+                      ? "border-accent bg-accent/10"
+                      : "border-border bg-card"
+                      }`}
                   >
                     <div className={`p-3 rounded-full bg-gradient-to-br ${interest.color}`}>
                       <Icon className="h-6 w-6 text-white" />
@@ -266,11 +263,10 @@ export default function Onboarding() {
                     key={level.value}
                     onClick={() => setFormData({ ...formData, level: level.value as any })}
                     data-testid={`button-level-${level.value}`}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 hover-elevate ${
-                      isSelected
-                        ? "border-accent bg-accent/10"
-                        : "border-border bg-card"
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center gap-4 hover-elevate ${isSelected
+                      ? "border-accent bg-accent/10"
+                      : "border-border bg-card"
+                      }`}
                   >
                     <div className="p-2 rounded-full gradient-stem">
                       <Icon className="h-5 w-5 text-white" />
@@ -319,11 +315,10 @@ export default function Onboarding() {
                 return (
                   <div key={step.id} className="relative z-10 flex flex-col items-center gap-1">
                     <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
-                        index <= currentStep
-                          ? "gradient-stem text-white shadow-md"
-                          : "bg-muted text-muted-foreground"
-                      }`}
+                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${index <= currentStep
+                        ? "gradient-stem text-white shadow-md"
+                        : "bg-muted text-muted-foreground"
+                        }`}
                     >
                       <Icon className="h-5 w-5" />
                     </div>
@@ -350,34 +345,34 @@ export default function Onboarding() {
         </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/90 backdrop-blur-xl border-t">
+      <div className="fixed bottom-0 left-0 right-0 p-4 glass-panel border-t border-border/40 z-50">
         <div className="max-w-md mx-auto flex gap-3">
           {currentStep > 0 && (
             <Button
               variant="outline"
               onClick={handleBack}
-              className="flex-1"
+              className="flex-1 rounded-xl interactive-element hover:bg-muted"
               data-testid="button-back"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
+              <ChevronLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
               Retour
             </Button>
           )}
           <Button
             onClick={handleNext}
             disabled={!canProceed()}
-            className="flex-1 gradient-stem text-white"
+            className="flex-1 gradient-stem text-white rounded-xl interactive-element group"
             data-testid="button-next"
           >
             {currentStep === steps.length - 1 ? (
               <>
                 Commencer
-                <Sparkles className="h-4 w-4 ml-1" />
+                <Sparkles className="h-4 w-4 ml-1 group-hover:animate-pulse" />
               </>
             ) : (
               <>
                 Suivant
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
               </>
             )}
           </Button>

@@ -93,13 +93,12 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
         return (
           <div
             key={actualIndex}
-            className={`rounded-full transition-all duration-300 ${
-              isActive
+            className={`rounded-full transition-all duration-300 ${isActive
                 ? "w-2 h-2 bg-accent shadow-sm"
                 : distance <= 1
                   ? "w-1.5 h-1.5 bg-muted-foreground/40"
                   : "w-1 h-1 bg-muted-foreground/20"
-            }`}
+              }`}
             data-testid={`progress-dot-${actualIndex}`}
           />
         );
@@ -228,8 +227,8 @@ export default function Feed() {
   const displayContents = smartFeed && smartFeedMutation.data
     ? smartFeedMutation.data.contents
     : contents?.filter(
-        (content: Content) => selectedCategory === "all" || content.category === selectedCategory
-      );
+      (content: Content) => selectedCategory === "all" || content.category === selectedCategory
+    );
 
   return (
     <div className="min-h-screen bg-background" data-testid="feed-page">
@@ -254,11 +253,10 @@ export default function Feed() {
           <button
             onClick={handleSmartFeedToggle}
             disabled={smartFeedMutation.isPending}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              smartFeed 
-                ? "gradient-stem text-white shadow-md" 
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${smartFeed
+                ? "gradient-stem text-white shadow-md"
                 : "bg-muted text-muted-foreground"
-            }`}
+              }`}
             data-testid="button-smart-feed"
           >
             <Brain className={`h-3.5 w-3.5 ${smartFeedMutation.isPending ? "animate-spin" : ""}`} />
@@ -271,11 +269,10 @@ export default function Feed() {
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                  isSelected 
-                    ? "gradient-stem text-white shadow-md" 
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${isSelected
+                    ? "gradient-stem text-white shadow-md"
                     : "bg-muted text-muted-foreground"
-                }`}
+                  }`}
                 data-testid={`button-category-${cat.value}`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -304,16 +301,16 @@ export default function Feed() {
         {(isLoading || smartFeedMutation.isPending) ? (
           <div className="p-4 space-y-5 max-w-lg mx-auto">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-3 p-4 rounded-xl bg-card border">
+              <div key={i} className="space-y-4 p-5 rounded-2xl glass-panel border-border/40 premium-shadow">
                 <div className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
+                  <div className="h-12 w-12 rounded-full skeleton-shimmer" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-1/3 rounded-md skeleton-shimmer" />
+                    <div className="h-3 w-1/4 rounded-md skeleton-shimmer opacity-70" />
                   </div>
                 </div>
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <Skeleton className="h-4 w-3/4" />
+                <div className="h-56 w-full rounded-xl skeleton-shimmer" />
+                <div className="h-4 w-3/4 rounded-md skeleton-shimmer pt-2" />
               </div>
             ))}
           </div>

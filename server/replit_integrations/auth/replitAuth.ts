@@ -37,6 +37,10 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express, bridgeOAuthToAppUser: (claims: any, req: any) => Promise<void>) {
+  if (!process.env.REPL_ID) {
+    return;
+  }
+
   app.use(passport.initialize());
   app.use(passport.session());
 

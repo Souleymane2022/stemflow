@@ -10,12 +10,13 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
+      className="glass-panel shadow-sm interactive-element hover:bg-muted/50 transition-colors rounded-xl"
       data-testid="button-theme-toggle"
     >
       {theme === "light" ? (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-5 w-5 text-primary" />
       ) : (
-        <Sun className="h-5 w-5" />
+        <Sun className="h-5 w-5 text-accent" />
       )}
     </Button>
   );

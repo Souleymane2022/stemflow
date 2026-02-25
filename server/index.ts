@@ -1,10 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
+import connectSqlite3 from "connect-sqlite3";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { pool } from "./db";
 
 declare module "express-session" {
   interface SessionData {
@@ -38,17 +37,26 @@ app.use((req, res, next) => {
   next();
 });
 
+import rateLimit from "express-rate-limit";
+
 app.set("trust proxy", 1);
 
-const PgStore = connectPgSimple(session);
+// Configure rate limiting for API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per `window` (here, per 15 minutes)
+  message: { message: "Trop de requêtes, veuillez réessayer plus tard." },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.use("/api", apiLimiter);
+
+const PgStore = connectSqlite3(session);
 
 app.use(
   session({
-    store: new PgStore({
-      pool: pool,
-      tableName: "user_sessions",
-      createTableIfMissing: true,
-    }),
+    store: new PgStore({ db: 'sessions.db', dir: process.env.SESSION_DIR || '.', table: 'user_sessions' }) as any,
     secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",
     resave: false,
     saveUninitialized: false,
@@ -138,14 +146,7 @@ import { storage } from "./storage";
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  httpServer.listen(port, "0.0.0.0", () => {
+    log(`serving on port ${port}`);
+  });
 })();

@@ -1,10 +1,15 @@
+import { randomUUID } from 'crypto';
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { sqliteTable as pgTable, text, integer } from "drizzle-orm/sqlite-core";
+const varchar = text;
+const jsonb = (name: string) => text(name, { mode: "json" });
+const boolean = (name: string) => integer(name, { mode: "boolean" });
+const timestamp = (name: string) => integer(name, { mode: "timestamp" });
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
@@ -15,7 +20,7 @@ export const users = pgTable("users", {
   profileImageUrl: text("profile_image_url"),
   preferredLanguage: text("preferred_language").default("fr"),
   educationLevel: text("education_level"),
-  interests: text("interests").array(),
+  interests: text("interests", { mode: "json" }),
   level: text("level").default("curieux"),
   xp: integer("xp").default(0),
   streak: integer("streak").default(0),
@@ -62,7 +67,7 @@ export const categories = ["science", "technology", "engineering", "mathematics"
 export const difficulties = ["debutant", "intermediaire", "avance"] as const;
 
 export const contents = pgTable("contents", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   contentType: text("content_type").notNull(),
   title: text("title").notNull(),
   description: text("description"),
@@ -73,7 +78,7 @@ export const contents = pgTable("contents", {
   roomName: text("room_name"),
   category: text("category").notNull(),
   difficulty: text("difficulty").notNull(),
-  tags: text("tags").array().default(sql`'{}'::text[]`),
+  tags: text("tags", { mode: "json" }).default(sql`'[]'`),
   xpReward: integer("xp_reward").default(25),
   authorId: text("author_id").notNull(),
   authorName: text("author_name").notNull(),
@@ -94,10 +99,10 @@ export type InsertContent = z.infer<typeof insertContentSchema>;
 export type Content = typeof contents.$inferSelect;
 
 export const quizQuestions = pgTable("quiz_questions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   contentId: text("content_id").notNull(),
   question: text("question").notNull(),
-  options: text("options").array().notNull(),
+  options: text("options", { mode: "json" }).notNull(),
   correctOptionIndex: integer("correct_option_index").notNull(),
   explanation: text("explanation"),
   order: integer("order").notNull(),
@@ -108,10 +113,10 @@ export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
 
 export const quizAttempts = pgTable("quiz_attempts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   contentId: text("content_id").notNull(),
-  answers: integer("answers").array().notNull(),
+  answers: text("answers", { mode: "json" }).notNull(),
   score: integer("score").notNull(),
   totalQuestions: integer("total_questions").notNull(),
   completedAt: text("completed_at").notNull(),
@@ -122,7 +127,7 @@ export type InsertQuizAttempt = z.infer<typeof insertQuizAttemptSchema>;
 export type QuizAttempt = typeof quizAttempts.$inferSelect;
 
 export const commentsTable = pgTable("comments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   contentId: text("content_id").notNull(),
   userId: text("user_id").notNull(),
   authorName: text("author_name").notNull(),
@@ -137,7 +142,7 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Comment = typeof commentsTable.$inferSelect;
 
 export const badges = pgTable("badges", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   name: text("name").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(),
@@ -151,7 +156,7 @@ export type InsertBadge = z.infer<typeof insertBadgeSchema>;
 export type Badge = typeof badges.$inferSelect;
 
 export const userBadges = pgTable("user_badges", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   badgeId: text("badge_id").notNull(),
   earnedAt: text("earned_at").notNull(),
@@ -178,7 +183,7 @@ export const roomTypes = ["public", "private"] as const;
 export const roomRoles = ["apprenant", "challenger", "mentor", "moderateur"] as const;
 
 export const rooms = pgTable("rooms", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   name: text("name").notNull(),
   description: text("description").notNull(),
   type: text("type").notNull(),
@@ -193,7 +198,7 @@ export type InsertRoom = z.infer<typeof insertRoomSchema>;
 export type Room = typeof rooms.$inferSelect;
 
 export const roomMembers = pgTable("room_members", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   roomId: text("room_id").notNull(),
   userId: text("user_id").notNull(),
   role: text("role").notNull(),
@@ -209,7 +214,7 @@ export const missionTypes = ["watch_videos", "complete_quiz", "join_salon", "com
 export const missionFrequencies = ["daily", "weekly", "one_time"] as const;
 
 export const missions = pgTable("missions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   missionType: text("mission_type").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -227,7 +232,7 @@ export type InsertMission = z.infer<typeof insertMissionSchema>;
 export type Mission = typeof missions.$inferSelect;
 
 export const follows = pgTable("follows", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   followerId: text("follower_id").notNull(),
   followingId: text("following_id").notNull(),
   createdAt: text("created_at").notNull(),
@@ -240,7 +245,7 @@ export type Follow = typeof follows.$inferSelect;
 export const activityTypes = ["content_created", "quiz_completed", "room_joined", "badge_earned", "level_up", "mission_completed"] as const;
 
 export const activities = pgTable("activities", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   username: text("username").notNull(),
   activityType: text("activity_type").notNull(),
@@ -254,7 +259,7 @@ export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type Activity = typeof activities.$inferSelect;
 
 export const roomPosts = pgTable("room_posts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   roomId: text("room_id").notNull(),
   userId: text("user_id").notNull(),
   username: text("username").notNull(),
@@ -268,7 +273,7 @@ export type InsertRoomPost = z.infer<typeof insertRoomPostSchema>;
 export type RoomPost = typeof roomPosts.$inferSelect;
 
 export const notifications = pgTable("notifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   type: text("type").notNull(),
   title: text("title").notNull(),
@@ -282,7 +287,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
 
 export const videoEngagements = pgTable("video_engagements", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   contentId: text("content_id").notNull(),
   watchTimeSeconds: integer("watch_time_seconds").notNull(),
@@ -299,7 +304,7 @@ export type InsertVideoEngagement = z.infer<typeof insertVideoEngagementSchema>;
 export type VideoEngagement = typeof videoEngagements.$inferSelect;
 
 export const engagementStats = pgTable("engagement_stats", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull().unique(),
   categoryStats: jsonb("category_stats"),
   preferredDifficulty: text("preferred_difficulty").default("debutant"),
@@ -310,7 +315,7 @@ export type InsertEngagementStats = z.infer<typeof insertEngagementStatsSchema>;
 export type EngagementStats = typeof engagementStats.$inferSelect;
 
 export const contentLikes = pgTable("content_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   contentId: text("content_id").notNull(),
   userId: text("user_id").notNull(),
 });
@@ -320,7 +325,7 @@ export type InsertContentLike = z.infer<typeof insertContentLikeSchema>;
 export type ContentLike = typeof contentLikes.$inferSelect;
 
 export const commentLikes = pgTable("comment_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   commentId: text("comment_id").notNull(),
   userId: text("user_id").notNull(),
 });
@@ -330,7 +335,7 @@ export type InsertCommentLike = z.infer<typeof insertCommentLikeSchema>;
 export type CommentLike = typeof commentLikes.$inferSelect;
 
 export const roomPostLikes = pgTable("room_post_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   postId: text("post_id").notNull(),
   userId: text("user_id").notNull(),
 });
@@ -340,12 +345,12 @@ export type InsertRoomPostLike = z.infer<typeof insertRoomPostLikeSchema>;
 export type RoomPostLike = typeof roomPostLikes.$inferSelect;
 
 export const passwordResetTokens = pgTable("password_reset_tokens", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
 });
 
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({ id: true, createdAt: true });
