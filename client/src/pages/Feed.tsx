@@ -94,10 +94,10 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
           <div
             key={actualIndex}
             className={`rounded-full transition-all duration-300 ${isActive
-                ? "w-2 h-2 bg-accent shadow-sm"
-                : distance <= 1
-                  ? "w-1.5 h-1.5 bg-muted-foreground/40"
-                  : "w-1 h-1 bg-muted-foreground/20"
+              ? "w-2 h-2 bg-accent shadow-sm"
+              : distance <= 1
+                ? "w-1.5 h-1.5 bg-muted-foreground/40"
+                : "w-1 h-1 bg-muted-foreground/20"
               }`}
             data-testid={`progress-dot-${actualIndex}`}
           />
@@ -224,11 +224,17 @@ export default function Feed() {
     setSmartFeed(!smartFeed);
   };
 
-  const displayContents = smartFeed && smartFeedMutation.data
+  const baseContents = smartFeed && smartFeedMutation.data
     ? smartFeedMutation.data.contents
     : contents?.filter(
       (content: Content) => selectedCategory === "all" || content.category === selectedCategory
-    );
+    ) || [];
+
+  // Gamification Loop: Duplicate contents to simulate infinite scroll and keep user engaged
+  const displayContents = [...baseContents, ...baseContents, ...baseContents].map((c, i) => ({
+    ...c,
+    uniqueInfiniteKey: `${c.id}-${i}`
+  }));
 
   return (
     <div className="min-h-screen bg-background" data-testid="feed-page">
@@ -254,8 +260,8 @@ export default function Feed() {
             onClick={handleSmartFeedToggle}
             disabled={smartFeedMutation.isPending}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${smartFeed
-                ? "gradient-stem text-white shadow-md"
-                : "bg-muted text-muted-foreground"
+              ? "gradient-stem text-white shadow-md"
+              : "bg-muted text-muted-foreground"
               }`}
             data-testid="button-smart-feed"
           >
@@ -270,8 +276,8 @@ export default function Feed() {
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${isSelected
-                    ? "gradient-stem text-white shadow-md"
-                    : "bg-muted text-muted-foreground"
+                  ? "gradient-stem text-white shadow-md"
+                  : "bg-muted text-muted-foreground"
                   }`}
                 data-testid={`button-category-${cat.value}`}
               >
@@ -316,9 +322,9 @@ export default function Feed() {
           </div>
         ) : displayContents && displayContents.length > 0 ? (
           <>
-            {displayContents.map((content: Content, index: number) => (
+            {displayContents.map((content: Content & { uniqueInfiniteKey?: string }, index: number) => (
               <FeedContentItem
-                key={content.id}
+                key={content.uniqueInfiniteKey || content.id}
                 content={content}
                 index={index}
                 onView={trackContentView}
