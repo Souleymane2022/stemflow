@@ -1,4 +1,4 @@
-import stemFlowLogo from "@assets/WhatsApp_Image_2026-02-12_at_21.06.10_1770926836861.jpeg";
+import stemFlowLogo from "@assets/logo_stemflow_2.jpeg";
 
 interface StemFlowLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -24,9 +24,9 @@ export function StemFlowLogo({ size = "md", showText = true, className = "", var
 
   return (
     <div className={`flex items-center ${className}`}>
-      <img 
-        src={stemFlowLogo} 
-        alt="STEMflow" 
+      <img
+        src={stemFlowLogo}
+        alt="STEMflow"
         className={`${showText ? sizeClasses[size] : iconOnlySizes[size]} w-auto object-contain ${variant === "light" ? "brightness-[10] contrast-50" : ""}`}
         data-testid="logo-stemflow"
       />
