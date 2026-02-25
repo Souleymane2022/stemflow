@@ -28,17 +28,26 @@ const africanLastNames = [
 
 const generateUsers = (count: number) => {
   const generated = [];
+  const usedUsernames = new Set(["Dr. Marie Curie", "Cheikh Anta Diop"]);
+
   generated.push(
     { id: "lb-user-1", username: "Dr. Marie Curie", email: "marie@stemflow.com", password: "", isActive: true, activationCode: null, xp: 8500, level: "mentor", streak: 45, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science"], createdAt: new Date().toISOString() },
     { id: "lb-user-2", username: "Cheikh Anta Diop", email: "cheikh@stemflow.com", password: "", isActive: true, activationCode: null, xp: 9800, level: "mentor", streak: 60, onboardingCompleted: true, preferredLanguage: "fr", educationLevel: "universite", interests: ["science", "technology", "mathematics", "engineering"], createdAt: new Date().toISOString() }
   );
 
   for (let i = 0; i < count; i++) {
-    const fn = africanFirstNames[Math.floor(Math.random() * africanFirstNames.length)];
-    const ln = africanLastNames[Math.floor(Math.random() * africanLastNames.length)];
+    let fn, ln, username;
+    do {
+      fn = africanFirstNames[Math.floor(Math.random() * africanFirstNames.length)];
+      ln = africanLastNames[Math.floor(Math.random() * africanLastNames.length)];
+      username = `${fn} ${ln}`;
+    } while (usedUsernames.has(username));
+
+    usedUsernames.add(username);
+
     generated.push({
       id: `af-user-${i}`,
-      username: `${fn} ${ln}`,
+      username: username,
       email: `${fn.toLowerCase()}.${ln.toLowerCase()}${i}@stemflow.africa`,
       password: "",
       isActive: true,
