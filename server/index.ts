@@ -1,9 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-
-console.log("🚀 Starting STEM Flow application...");
-console.log("Environment PORT:", process.env.PORT);
-console.log("Environment NODE_ENV:", process.env.NODE_ENV);
 import session from "express-session";
 import connectSqlite3 from "connect-sqlite3";
 import { serveStatic } from "./static";
@@ -115,42 +111,62 @@ import { setupAuth } from "./replit_integrations/auth";
 import { storage } from "./storage";
 
 (async () => {
-  await seedDatabase();
+  try {
+    console.log("Starting server initialization sequence...");
+    const { execSync } = await import("child_process");
+    console.log("Running database migrations/push...");
+    try {
+      execSync("npx drizzle-kit push", { stdio: "inherit" });
+      console.log("Database schema pushed successfully.");
+    } catch (e) {
+      console.log("Warning: drizzle-kit push failed, relying on existing schema or db will fail.", e);
+    }
+    await seedDatabase();
+    console.log("Database seeded successfully.");
 
-  await setupAuth(app, async (claims: any, req: any) => {
-    const oauthId = claims.sub;
-    const email = claims.email || null;
-    const firstName = claims.first_name || null;
-    const lastName = claims.last_name || null;
-    const profileImageUrl = claims.profile_image_url || null;
-    const user = await storage.createOrLinkOAuthUser(oauthId, "replit", email, firstName, lastName, profileImageUrl);
-    req.session.userId = user.id;
-  });
+    await setupAuth(app, async (claims: any, req: any) => {
+      const oauthId = claims.sub;
+      const email = claims.email || null;
+      const firstName = claims.first_name || null;
+      const lastName = claims.last_name || null;
+      const profileImageUrl = claims.profile_image_url || null;
+      const user = await storage.createOrLinkOAuthUser(oauthId, "replit", email, firstName, lastName, profileImageUrl);
+      req.session.userId = user.id;
+    });
 
-  await registerRoutes(httpServer, app);
+    await registerRoutes(httpServer, app);
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
 
-    console.error("Internal Server Error:", err);
+      console.error("Internal Server Error:", err);
 
-    if (res.headersSent) {
-      return next(err);
+      if (res.headersSent) {
+        return next(err);
+      }
+
+      return res.status(status).json({ message });
+    });
+
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
     }
 
-    return res.status(status).json({ message });
-  });
-
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+    try {
+      const port = parseInt(process.env.PORT || "5000", 10);
+      httpServer.listen(port, "0.0.0.0", () => {
+        console.log(`🚀 Server successfully started and serving on port ${port}`);
+      });
+    } catch (startupError) {
+      console.error("❌ ERROR BINDING PORT:", startupError);
+      process.exit(1);
+    }
+  } catch (globalError) {
+    console.error("❌ CRITICAL GLOBAL INITIALIZATION ERROR:", globalError);
+    process.exit(1);
   }
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
-  });
 })();
