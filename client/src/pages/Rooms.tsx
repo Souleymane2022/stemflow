@@ -25,14 +25,14 @@ import {
 import type { Room } from "@shared/schema";
 import { useUserState } from "@/lib/userState";
 
-const categoryIcons = {
+const categoryIcons: Record<string, React.ElementType> = {
   science: Lightbulb,
   technology: Cpu,
   engineering: Wrench,
   mathematics: Calculator,
 };
 
-const categoryColors = {
+const categoryColors: Record<string, string> = {
   science: "from-blue-500 to-cyan-400",
   technology: "from-purple-500 to-pink-400",
   engineering: "from-orange-500 to-yellow-400",
@@ -131,7 +131,7 @@ export default function Rooms() {
                           <Globe className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words whitespace-pre-wrap">
                         {room.description}
                       </p>
                       <div className="flex items-center gap-2">

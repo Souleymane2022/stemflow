@@ -90,11 +90,13 @@ function VideoPlayer({ url, gradientColor, contentId }: { url: string; gradientC
           </div>
         ) : (
           <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
+            loading="lazy"
             title="Video"
+            referrerPolicy="strict-origin-when-cross-origin"
           />
         )}
       </div>
@@ -744,21 +746,22 @@ export function ContentCard({
                 </motion.div>
                 <span className="ml-1 text-sm">{likeCount}</span>
               </Button>
-              <Button className="interactive-element hover-elevate"
+              <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowComments(!showComments)}
-                className={showComments ? "text-accent" : ""}
+                className={`interactive-element hover-elevate ${showComments ? "text-accent" : ""}`}
                 data-testid={`button-comment-${content.id}`}
               >
                 <MessageCircle className={`h-5 w-5 ${showComments ? "fill-current" : ""}`} />
                 <span className="ml-1 text-sm">{commentCount}</span>
               </Button>
               <div className="relative">
-                <Button className="interactive-element hover-elevate"
+                <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowShareMenu(!showShareMenu)}
+                  className="interactive-element hover-elevate"
                   data-testid={`button-share-${content.id}`}
                 >
                   <Share2 className="h-5 w-5" />
