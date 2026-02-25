@@ -1,7 +1,7 @@
 services:
   - type: web
     name: stemflow-app
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start
@@ -14,5 +14,7 @@ services:
         value: sqlite.db
       - key: SESSION_DIR
         value: .
+      - key: OPENAI_API_KEY
+        value: dummy_key_for_build
       - key: SESSION_SECRET
         generateValue: true
