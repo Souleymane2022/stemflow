@@ -33,6 +33,7 @@ RUN npm ci --omit=dev
 
 # Copy built artifacts from the builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/migrations ./migrations
 
 # Create a volume directory for databases
 RUN mkdir -p /app/data

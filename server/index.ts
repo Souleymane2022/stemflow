@@ -113,13 +113,15 @@ import { storage } from "./storage";
 (async () => {
   try {
     console.log("Starting server initialization sequence...");
-    const { execSync } = await import("child_process");
-    console.log("Running database migrations/push...");
+    const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
+    const { db } = await import("./db");
+
+    console.log("Running database migrations...");
     try {
-      execSync("npx drizzle-kit push", { stdio: "inherit" });
-      console.log("Database schema pushed successfully.");
+      migrate(db, { migrationsFolder: "migrations" });
+      console.log("Database migrations completed successfully.");
     } catch (e) {
-      console.log("Warning: drizzle-kit push failed, relying on existing schema or db will fail.", e);
+      console.error("Warning: migration failed, relying on existing schema or db will fail.", e);
     }
     await seedDatabase();
     console.log("Database seeded successfully.");
