@@ -69,6 +69,12 @@ const generateUsers = (count: number) => {
 
 export async function seedDatabase() {
   try {
+    const existingUsers = await db.select().from(users).limit(1);
+    if (existingUsers.length > 0) {
+      console.log("Database already seeded with users. Skipping seed to prevent data loss.");
+      return;
+    }
+
     console.log("Clearing existing database entries to force fresh African content seed...");
     await db.delete(passwordResetTokens);
     await db.delete(roomPostLikes);

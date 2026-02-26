@@ -218,7 +218,7 @@ export async function registerRoutes(
 
     const user = await storage.getUser(req.session.userId);
     if (!user) {
-      req.session.destroy(() => {});
+      req.session.destroy(() => { });
       return res.status(401).json({ error: "Utilisateur non trouvé" });
     }
 
@@ -361,7 +361,15 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid request body", details: validation.error.errors });
       }
       const { questions, ...contentData } = validation.data;
-      const content = await storage.createContent({ ...contentData, createdAt: new Date().toISOString() });
+      const user = await storage.getUser(req.session.userId!);
+
+      const content = await storage.createContent({
+        ...contentData,
+        authorId: user!.id,
+        authorName: user!.username,
+        authorAvatar: user?.profileImageUrl || null,
+        createdAt: new Date().toISOString()
+      });
 
       if (contentData.contentType === "quiz" && questions && questions.length > 0) {
         const quizQuestions = questions.map((q, i) => ({
@@ -376,14 +384,15 @@ export async function registerRoutes(
       }
 
       await storage.createActivity({
-        userId: contentData.authorId,
-        username: contentData.authorName,
+        userId: user!.id,
+        username: user!.username,
         activityType: "content_created",
         description: `a publié un nouveau contenu : ${content.title}`,
       });
 
       res.json(content);
     } catch (error) {
+      console.error("Failed to create content:", error);
       res.status(500).json({ error: "Failed to create content" });
     }
   });
@@ -616,6 +625,21 @@ export async function registerRoutes(
       res.json(rooms);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch rooms" });
+    }
+  });
+
+  app.post("/api/rooms", requireAuth, async (req, res) => {
+    try {
+      const roomData = req.body;
+      const room = await storage.createRoom(roomData);
+
+      // Auto-join the creator to the room
+      await storage.joinRoom(room.id, req.session.userId!, "moderateur");
+
+      res.status(201).json(room);
+    } catch (error) {
+      console.error("Failed to create room:", error);
+      res.status(500).json({ error: "Failed to create room" });
     }
   });
 
@@ -988,7 +1012,7 @@ export async function registerRoutes(
         xp: user?.xp || 0,
         contentCount: userContent.length,
         quizScores,
-        interests: user?.interests || [],
+        interests: (user?.interests as string[]) || [],
         level: user?.level || "curieux",
         categoriesEngaged,
       });
