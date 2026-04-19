@@ -80,11 +80,11 @@ export function NotificationBell() {
 
   return (
     <div className="relative">
-      <Button className="interactive-element hover-elevate"
+      <Button
+        className="interactive-element hover-elevate relative"
         variant="ghost"
         size="icon"
         onClick={() => setOpen(!open)}
-        className="relative"
         data-testid="button-notifications"
       >
         <Bell className="h-5 w-5" />
