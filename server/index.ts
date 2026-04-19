@@ -125,10 +125,11 @@ import { storage } from "./storage";
     console.log("Starting server initialization sequence...");
     const { migrate } = await import("drizzle-orm/postgres-js/migrator");
     const { db } = await import("./db");
+    const path = await import("path");
 
     console.log("Running database migrations...");
     try {
-      await migrate(db, { migrationsFolder: "migrations" });
+      await migrate(db, { migrationsFolder: path.join(process.cwd(), "migrations") });
       console.log("Database migrations completed successfully.");
     } catch (e) {
       console.error("Warning: migration failed, relying on existing schema or db will fail.", e);
@@ -187,6 +188,9 @@ import { storage } from "./storage";
     }
   } catch (globalError) {
     console.error("❌ CRITICAL GLOBAL INITIALIZATION ERROR:", globalError);
-    process.exit(1);
+    // On Vercel, we don't want to exit the process as it might be a temporary issue
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 })();
