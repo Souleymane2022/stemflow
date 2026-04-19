@@ -1,6 +1,12 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from 'better-sqlite3';
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "@shared/schema";
 
-const sqlite = new Database(process.env.DATABASE_URL || 'sqlite.db');
-export const db = drizzle(sqlite, { schema });
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+if (!dbUrl) {
+  throw new Error("DATABASE_URL or POSTGRES_URL must be set. On Vercel, please connect a Postgres database.");
+}
+
+const queryClient = postgres(dbUrl);
+export const db = drizzle(queryClient, { schema });

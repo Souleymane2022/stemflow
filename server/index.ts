@@ -11,7 +11,7 @@ declare module "express-session" {
   }
 }
 
-const app = express();
+export const app = express();
 const httpServer = createServer(app);
 
 declare module "http" {
@@ -53,11 +53,20 @@ const apiLimiter = rateLimit({
 
 app.use("/api", apiLimiter);
 
-const PgStore = connectSqlite3(session);
+let sessionStore: any;
+if (process.env.NODE_ENV === "production") {
+  const MemoryStore = memorystore(session);
+  sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+} else {
+  const PgStore = connectSqlite3(session);
+  sessionStore = new PgStore({ db: 'sessions.db', dir: process.env.SESSION_DIR || '.', table: 'user_sessions' });
+}
 
 app.use(
   session({
-    store: new PgStore({ db: 'sessions.db', dir: process.env.SESSION_DIR || '.', table: 'user_sessions' }) as any,
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",
     resave: false,
     saveUninitialized: false,
@@ -114,7 +123,7 @@ import { storage } from "./storage";
 (async () => {
   try {
     console.log("Starting server initialization sequence...");
-    const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
+    const { migrate } = await import("drizzle-orm/postgres-js/migrator");
     const { db } = await import("./db");
 
     console.log("Running database migrations...");
@@ -159,14 +168,16 @@ import { storage } from "./storage";
       await setupVite(httpServer, app);
     }
 
-    try {
-      const port = parseInt(process.env.PORT || "5000", 10);
-      httpServer.listen(port, "0.0.0.0", () => {
-        console.log(`🚀 Server successfully started and serving on port ${port}`);
-      });
-    } catch (startupError) {
-      console.error("❌ ERROR BINDING PORT:", startupError);
-      process.exit(1);
+    if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+      try {
+        const port = parseInt(process.env.PORT || "5000", 10);
+        httpServer.listen(port, "0.0.0.0", () => {
+          console.log(`🚀 Server successfully started and serving on port ${port}`);
+        });
+      } catch (startupError) {
+        console.error("❌ ERROR BINDING PORT:", startupError);
+        process.exit(1);
+      }
     }
   } catch (globalError) {
     console.error("❌ CRITICAL GLOBAL INITIALIZATION ERROR:", globalError);

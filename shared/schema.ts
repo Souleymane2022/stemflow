@@ -1,10 +1,6 @@
 import { randomUUID } from 'crypto';
 import { sql } from "drizzle-orm";
-import { sqliteTable as pgTable, text, integer } from "drizzle-orm/sqlite-core";
-const varchar = text;
-const jsonb = (name: string) => text(name, { mode: "json" });
-const boolean = (name: string) => integer(name, { mode: "boolean" });
-const timestamp = (name: string) => integer(name, { mode: "timestamp" });
+import { pgTable, text, integer, varchar, jsonb, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -20,7 +16,7 @@ export const users = pgTable("users", {
   profileImageUrl: text("profile_image_url"),
   preferredLanguage: text("preferred_language").default("fr"),
   educationLevel: text("education_level"),
-  interests: text("interests", { mode: "json" }),
+  interests: jsonb("interests"),
   level: text("level").default("curieux"),
   xp: integer("xp").default(0),
   streak: integer("streak").default(0),
@@ -78,7 +74,7 @@ export const contents = pgTable("contents", {
   roomName: text("room_name"),
   category: text("category").notNull(),
   difficulty: text("difficulty").notNull(),
-  tags: text("tags", { mode: "json" }).default(sql`'[]'`),
+  tags: jsonb("tags").default(sql`'[]'::jsonb`),
   xpReward: integer("xp_reward").default(25),
   authorId: text("author_id").notNull(),
   authorName: text("author_name").notNull(),
@@ -102,7 +98,7 @@ export const quizQuestions = pgTable("quiz_questions", {
   id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   contentId: text("content_id").notNull(),
   question: text("question").notNull(),
-  options: text("options", { mode: "json" }).notNull(),
+  options: jsonb("options").notNull(),
   correctOptionIndex: integer("correct_option_index").notNull(),
   explanation: text("explanation"),
   order: integer("order").notNull(),
@@ -116,7 +112,7 @@ export const quizAttempts = pgTable("quiz_attempts", {
   id: varchar("id").primaryKey().$defaultFn(() => randomUUID()),
   userId: text("user_id").notNull(),
   contentId: text("content_id").notNull(),
-  answers: text("answers", { mode: "json" }).notNull(),
+  answers: jsonb("answers").notNull(),
   score: integer("score").notNull(),
   totalQuestions: integer("total_questions").notNull(),
   completedAt: text("completed_at").notNull(),
@@ -350,7 +346,7 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false),
-  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({ id: true, createdAt: true });

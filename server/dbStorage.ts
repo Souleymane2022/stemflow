@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(contentLikes)
         .where(and(eq(contentLikes.contentId, contentId), eq(contentLikes.userId, userId)));
       await db.update(contents)
-        .set({ likes: sql`MAX(${contents.likes} - 1, 0)` })
+        .set({ likes: sql`GREATEST(${contents.likes} - 1, 0)` })
         .where(eq(contents.id, contentId));
       const [updated] = await db.select().from(contents).where(eq(contents.id, contentId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
@@ -179,7 +179,7 @@ export class DatabaseStorage implements IStorage {
 
   async decrementCommentCount(contentId: string): Promise<void> {
     await db.update(contents)
-      .set({ comments: sql`MAX(${contents.comments} - 1, 0)` })
+      .set({ comments: sql`GREATEST(${contents.comments} - 1, 0)` })
       .where(eq(contents.id, contentId));
   }
 
@@ -268,7 +268,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(commentLikes)
         .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.userId, userId)));
       await db.update(commentsTable)
-        .set({ likes: sql`MAX(${commentsTable.likes} - 1, 0)` })
+        .set({ likes: sql`GREATEST(${commentsTable.likes} - 1, 0)` })
         .where(eq(commentsTable.id, commentId));
       const [updated] = await db.select().from(commentsTable).where(eq(commentsTable.id, commentId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
@@ -454,7 +454,7 @@ export class DatabaseStorage implements IStorage {
       await db.delete(roomPostLikes)
         .where(and(eq(roomPostLikes.postId, postId), eq(roomPostLikes.userId, userId)));
       await db.update(roomPosts)
-        .set({ likes: sql`MAX(${roomPosts.likes} - 1, 0)` })
+        .set({ likes: sql`GREATEST(${roomPosts.likes} - 1, 0)` })
         .where(eq(roomPosts.id, postId));
       const [updated] = await db.select().from(roomPosts).where(eq(roomPosts.id, postId));
       return { liked: false, likeCount: updated?.likes ?? 0 };
