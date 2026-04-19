@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import session from "express-session";
+import memorystore from "memorystore";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
