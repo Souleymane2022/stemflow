@@ -128,13 +128,19 @@ import { storage } from "./storage";
 
     console.log("Running database migrations...");
     try {
-      migrate(db, { migrationsFolder: "migrations" });
+      await migrate(db, { migrationsFolder: "migrations" });
       console.log("Database migrations completed successfully.");
     } catch (e) {
       console.error("Warning: migration failed, relying on existing schema or db will fail.", e);
     }
-    await seedDatabase();
-    console.log("Database seeded successfully.");
+
+    // Only seed if not on Vercel or if DATABASE_SEED=true
+    if (!process.env.VERCEL || process.env.DATABASE_SEED === "true") {
+      await seedDatabase();
+      console.log("Database seeded successfully.");
+    } else {
+      console.log("Skipping database seed on Vercel Production.");
+    }
 
     await setupAuth(app, async (claims: any, req: any) => {
       const oauthId = claims.sub;

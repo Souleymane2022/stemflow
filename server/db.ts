@@ -8,5 +8,5 @@ if (!dbUrl) {
   throw new Error("DATABASE_URL or POSTGRES_URL must be set. On Vercel, please connect a Postgres database.");
 }
 
-const queryClient = postgres(dbUrl);
+const queryClient = postgres(dbUrl, { ssl: 'require' });
 export const db = drizzle(queryClient, { schema });
