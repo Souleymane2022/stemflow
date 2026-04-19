@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import session from "express-session";
-import connectSqlite3 from "connect-sqlite3";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
@@ -54,14 +53,19 @@ const apiLimiter = rateLimit({
 app.use("/api", apiLimiter);
 
 let sessionStore: any;
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
   const MemoryStore = memorystore(session);
   sessionStore = new MemoryStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   });
 } else {
-  const PgStore = connectSqlite3(session);
-  sessionStore = new PgStore({ db: 'sessions.db', dir: process.env.SESSION_DIR || '.', table: 'user_sessions' });
+  const connectSqlite3 = (await import("connect-sqlite3")).default;
+  const SQLiteStore = connectSqlite3(session);
+  sessionStore = new SQLiteStore({ 
+    db: 'sessions.db', 
+    dir: process.env.SESSION_DIR || '.', 
+    table: 'user_sessions' 
+  });
 }
 
 app.use(
@@ -72,7 +76,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" || !!process.env.VERCEL,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
