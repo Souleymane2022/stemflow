@@ -386,7 +386,8 @@ function DiscoverUserCard({
               </span>
             </div>
           </div>
-          <Button className="interactive-element hover-elevate"
+          <Button 
+            className={`interactive-element hover-elevate ${!isFollowing ? "gradient-stem text-white" : ""}`}
             variant={isFollowing ? "outline" : "default"}
             size="sm"
             onClick={(e) => {
@@ -397,7 +398,6 @@ function DiscoverUserCard({
                 onFollow(entry.userId);
               }
             }}
-            className={!isFollowing ? "gradient-stem text-white" : ""}
             data-testid={`button-follow-${entry.userId}`}
           >
             {isFollowing ? (

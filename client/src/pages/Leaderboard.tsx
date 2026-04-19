@@ -100,12 +100,12 @@ export default function Leaderboard() {
       <div className="px-4 py-2 overflow-x-auto">
         <div className="flex gap-2">
           {categoryFilters.map((cat) => (
-            <Button className="interactive-element hover-elevate"
+            <Button 
               key={cat.value}
+              className={`interactive-element hover-elevate ${selectedCategory === cat.value ? "gradient-stem text-white" : ""}`}
               variant={selectedCategory === cat.value ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(cat.value)}
-              className={selectedCategory === cat.value ? "gradient-stem text-white" : ""}
               data-testid={`filter-${cat.value}`}
             >
               <cat.icon className="h-3 w-3 mr-1" />
