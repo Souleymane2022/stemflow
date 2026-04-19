@@ -317,12 +317,12 @@ export class DatabaseStorage implements IStorage {
     const allAttempts = await db.select().from(quizAttempts);
 
     const entries: LeaderboardEntry[] = allUsers.map(user => {
-      const userContents = allContents.filter(c => c.authorId === user.id);
+      const userContents = allContents.filter((c: any) => c.authorId === user.id);
       const contentCount = userContents.length;
 
-      const userAttempts = allAttempts.filter(a => a.userId === user.id);
+      const userAttempts = allAttempts.filter((a: any) => a.userId === user.id);
       const avgQuizScore = userAttempts.length > 0
-        ? userAttempts.reduce((sum, a) => sum + (a.totalQuestions > 0 ? (a.score / a.totalQuestions) * 100 : 0), 0) / userAttempts.length
+        ? userAttempts.reduce((sum: number, a: any) => sum + (a.totalQuestions > 0 ? (a.score / a.totalQuestions) * 100 : 0), 0) / userAttempts.length
         : 0;
 
       const contentQuality = contentCount * 10;
@@ -488,14 +488,14 @@ export class DatabaseStorage implements IStorage {
     const rows = await db.select({ followerId: follows.followerId })
       .from(follows)
       .where(eq(follows.followingId, userId));
-    return rows.map(r => r.followerId);
+    return rows.map((r: any) => r.followerId);
   }
 
   async getFollowing(userId: string): Promise<string[]> {
     const rows = await db.select({ followingId: follows.followingId })
       .from(follows)
       .where(eq(follows.followerId, userId));
-    return rows.map(r => r.followingId);
+    return rows.map((r: any) => r.followingId);
   }
 
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
