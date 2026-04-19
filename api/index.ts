@@ -1,5 +1,6 @@
 import { app as mainApp, setupServer } from "../server/index";
 
+// Deployment trigger: 2026-04-19T10:40:00Z
 // Endpoint de diagnostic ultra-léger
 mainApp.get("/api/debug", async (req, res) => {
   try {
