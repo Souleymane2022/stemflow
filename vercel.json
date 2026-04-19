@@ -2,17 +2,13 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/api/index.ts"
     }
   ],
   "functions": {
     "api/index.ts": {
-      "includeFiles": "migrations/**"
+      "includeFiles": "dist/public/**;migrations/**"
     }
   }
 }
