@@ -459,11 +459,11 @@ export default function CreateContent() {
                     </div>
                   ))}
                   {q.options.length < 6 && (
-                    <Button className="interactive-element hover-elevate"
+                    <Button 
+                      className="interactive-element hover-elevate w-full"
                       variant="outline"
                       size="sm"
                       onClick={() => addOption(qIndex)}
-                      className="w-full"
                       data-testid={`button-add-option-${qIndex}`}
                     >
                       <Plus className="h-3 w-3 mr-1" />

@@ -341,13 +341,13 @@ export default function RoomDetail() {
                     </div>
                     <p className="text-sm mt-1" data-testid={`text-post-${post.id}`}>{post.text}</p>
                     <div className="flex items-center gap-4 mt-3">
-                      <Button className="interactive-element hover-elevate"
+                      <Button 
+                        className="interactive-element hover-elevate gap-1"
                         variant="ghost"
                         size="sm"
                         onClick={() => likePostMutation.mutate(post.id)}
                         disabled={likePostMutation.isPending}
                         data-testid={`button-like-post-${post.id}`}
-                        className="gap-1"
                       >
                         <Heart className="h-4 w-4" />
                         <span data-testid={`text-likes-${post.id}`}>{post.likes}</span>
