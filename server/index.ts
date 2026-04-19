@@ -11,7 +11,6 @@ declare module "express-session" {
 }
 
 export const app = express();
-const httpServer = createServer(app);
 
 declare module "http" {
   interface IncomingMessage {
@@ -52,36 +51,7 @@ const apiLimiter = rateLimit({
 
 app.use("/api", apiLimiter);
 
-let sessionStore: any;
-if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-  const MemoryStore = memorystore(session);
-  sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  });
-} else {
-  const connectSqlite3 = (await import("connect-sqlite3")).default;
-  const SQLiteStore = connectSqlite3(session);
-  sessionStore = new SQLiteStore({ 
-    db: 'sessions.db', 
-    dir: process.env.SESSION_DIR || '.', 
-    table: 'user_sessions' 
-  });
-}
-
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production" || !!process.env.VERCEL,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    },
-  })
-);
+// Session configuration will be handled inside setupServer for production
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -128,10 +98,31 @@ import { storage } from "./storage";
 let serverInitialized = false;
 
 export async function setupServer(app: express.Express) {
-  if (serverInitialized) return httpServer;
+  if (serverInitialized) return;
 
   try {
     console.log("Starting server initialization sequence...");
+
+    // Session setup for production/Vercel
+    const MemoryStore = memorystore(session);
+    const sessionStore = new MemoryStore({
+      checkPeriod: 86400000 
+    });
+
+    app.use(
+      session({
+        store: sessionStore,
+        secret: process.env.SESSION_SECRET || "stem-flow-secret-key-dev",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        },
+      })
+    );
     
     // Auth setup
     await setupAuth(app, async (claims: any, req: any) => {
@@ -144,7 +135,10 @@ export async function setupServer(app: express.Express) {
       req.session.userId = user.id;
     });
 
-    await registerRoutes(httpServer, app);
+    // Create a dummy server object for registerRoutes if needed locally, or just app for some routers
+    // registerRoutes expects (httpServer, app). On Vercel, we might need a workaround if it uses Ws.
+    // For Vercel, we pass null as httpServer since Ws won't work anyway.
+    await registerRoutes(null as any, app);
 
     app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -156,13 +150,9 @@ export async function setupServer(app: express.Express) {
 
     if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
       serveStatic(app);
-    } else {
-      const { setupVite } = await import("./vite");
-      await setupVite(httpServer, app);
     }
 
     serverInitialized = true;
-    return httpServer;
   } catch (error) {
     console.error("❌ Setup error:", error);
     throw error;
@@ -173,6 +163,9 @@ export async function setupServer(app: express.Express) {
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   (async () => {
     try {
+      const { createServer } = await import("http");
+      const localHttpServer = createServer(app);
+      
       const { db } = await import("./db");
       const { migrate } = await import("drizzle-orm/postgres-js/migrator");
       const path = await import("path");
@@ -185,11 +178,22 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
       }
       
       await seedDatabase();
+      
+      // Local session with SQLite for persistence in dev
+      const connectSqlite3 = (await import("connect-sqlite3")).default;
+      const SQLiteStore = connectSqlite3(session);
+      app.use(session({
+        store: new SQLiteStore({ db: 'sessions.db' }),
+        secret: "dev-secret",
+        resave: false,
+        saveUninitialized: false
+      }));
+
       await setupServer(app);
       
       const port = parseInt(process.env.PORT || "5000", 10);
-      httpServer.listen(port, "0.0.0.0", () => {
-        console.log(`🚀 Server successfully started on port ${port}`);
+      localHttpServer.listen(port, "0.0.0.0", () => {
+        console.log(`🚀 Local server started on port ${port}`);
       });
     } catch (err) {
       console.error("Local startup error:", err);

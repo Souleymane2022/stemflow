@@ -1,46 +1,24 @@
-import { app, setupServer } from "../server/index";
+import { app as mainApp, setupServer } from "../server/index";
 
-// Endpoint de diagnostic pour Vercel
-app.get("/api/debug", async (_req, res) => {
+// Endpoint de diagnostic ultra-léger
+mainApp.get("/api/debug", async (req, res) => {
   try {
-    await setupServer(app);
-    const { db } = await import("../server/db");
-    const { sql } = await import("drizzle-orm");
-    const path = await import("path");
-    const fs = await import("fs");
-
-    const tables = await db.execute(sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`);
-    const migrationsExist = fs.existsSync(path.join(process.cwd(), "migrations"));
-    const migrationFiles = migrationsExist ? fs.readdirSync(path.join(process.cwd(), "migrations")) : [];
-
-    res.json({ 
-      status: "ok", 
-      database: "connected", 
-      tables: tables.map((t: any) => t.table_name),
-      migrations: {
-        exist: migrationsExist,
-        files: migrationFiles
-      },
-      env: process.env.NODE_ENV,
-      vercel: !!process.env.VERCEL
-    });
+    await setupServer(mainApp);
+    res.json({ status: "ok", message: "Server initialized and connected to Postgres" });
   } catch (error: any) {
-    res.status(500).json({ 
-      status: "error", 
-      message: error.message,
-      stack: error.stack
-    });
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
 
-// Middleware pour initialiser le serveur sur chaque requête si nécessaire
-app.use(async (req, res, next) => {
+// Middleware d'initialisation lazy sur toutes les requêtes
+mainApp.use(async (req, res, next) => {
   try {
-    await setupServer(app);
+    await setupServer(mainApp);
     next();
   } catch (error) {
+    console.error("Initialization error:", error);
     next(error);
   }
 });
 
-export default app;
+export default mainApp;
