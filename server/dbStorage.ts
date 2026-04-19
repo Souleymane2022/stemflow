@@ -133,7 +133,7 @@ export class DatabaseStorage implements IStorage {
     const rows = await db.select({ contentId: contentLikes.contentId })
       .from(contentLikes)
       .where(eq(contentLikes.userId, userId));
-    return rows.map(r => r.contentId);
+    return rows.map((r: any) => r.contentId);
   }
 
   async getUserLikedCategories(userId: string, limit = 20): Promise<{ category: string; liked: boolean }[]> {
@@ -142,7 +142,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(contents, eq(contentLikes.contentId, contents.id))
       .where(eq(contentLikes.userId, userId))
       .limit(limit);
-    return rows.map(r => ({ category: r.category || "science", liked: true }));
+    return rows.map((r: any) => ({ category: r.category || "science", liked: true }));
   }
 
   async getUserEngagedCategories(userId: string): Promise<string[]> {
@@ -155,8 +155,8 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(contents, eq(quizAttempts.contentId, contents.id))
       .where(eq(quizAttempts.userId, userId));
     const all = new Set([
-      ...likedCategories.map(r => r.category).filter(Boolean),
-      ...quizCategories.map(r => r.category).filter(Boolean),
+      ...likedCategories.map((r: any) => r.category).filter(Boolean),
+      ...quizCategories.map((r: any) => r.category).filter(Boolean),
     ]);
     return Array.from(all) as string[];
   }
@@ -245,7 +245,7 @@ export class DatabaseStorage implements IStorage {
 
     const replies = await db.select().from(commentsTable).where(eq(commentsTable.parentId, commentId));
     if (replies.length > 0) {
-      await db.delete(commentLikes).where(inArray(commentLikes.commentId, replies.map(r => r.id)));
+      await db.delete(commentLikes).where(inArray(commentLikes.commentId, replies.map((r: any) => r.id)));
       await db.delete(commentsTable).where(eq(commentsTable.parentId, commentId));
     }
 
@@ -316,7 +316,7 @@ export class DatabaseStorage implements IStorage {
     const allContents = await db.select().from(contents);
     const allAttempts = await db.select().from(quizAttempts);
 
-    const entries: LeaderboardEntry[] = allUsers.map(user => {
+    const entries: LeaderboardEntry[] = allUsers.map((user: any) => {
       const userContents = allContents.filter((c: any) => c.authorId === user.id);
       const contentCount = userContents.length;
 
