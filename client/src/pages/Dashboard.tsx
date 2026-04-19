@@ -21,7 +21,10 @@ import {
   Cpu,
   Wrench,
   Calculator,
+  Vote,
 } from "lucide-react";
+
+import { useLocation } from "wouter";
 
 interface DashboardStats {
   xp: number;
@@ -61,6 +64,7 @@ const categoryConfig = {
 const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
@@ -190,6 +194,29 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Elections Promotion Banner */}
+        <Card 
+          className="glass-panel premium-shadow border-0 p-0 overflow-hidden cursor-pointer group relative"
+          onClick={() => setLocation("/elections")}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-accent opacity-90 z-0" />
+          <div className="relative z-10 p-5 sm:p-6 flex items-center justify-between">
+            <div className="text-white space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">Événement Spécial</Badge>
+              </div>
+              <h3 className="font-bold text-lg sm:text-xl flex items-center gap-2">
+                <Vote className="h-5 w-5" />
+                Présélection SAYC
+              </h3>
+              <p className="text-white/80 text-sm max-w-sm">Découvrez les 14 leaders en lice pour diriger le conseil de demain. (Phase de découverte)</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-white/20 flex flex-shrink-0 items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300 backdrop-blur-md">
+              <Vote className="h-6 w-6 text-white" />
+            </div>
+          </div>
+        </Card>
+
         <Card className="glass-panel premium-shadow border-0 p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Target className="h-4 w-4 text-accent" />
@@ -214,7 +241,7 @@ export default function Dashboard() {
                   </div>
                   <Progress
                     value={percent}
-                    className="h-2"
+                    className="h-2 transition-all duration-700 w-full rounded-md gradient-stem transition-all duration-500"
                     data-testid={`progress-${cat}`}
                   />
                 </div>
@@ -246,7 +273,7 @@ export default function Dashboard() {
                     strokeLinecap="round"
                     strokeDasharray={missionCircumference}
                     strokeDashoffset={missionStrokeDashoffset}
-                    className="transition-all duration-700"
+
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -289,7 +316,7 @@ export default function Dashboard() {
             {weeklyActivity.map((item, i) => (
               <div key={i} className="flex flex-col items-center gap-1 flex-1">
                 <div
-                  className="w-full rounded-md gradient-stem transition-all duration-500"
+
                   style={{ height: `${Math.max(8, (item.value / maxWeekly) * 100)}%` }}
                 />
                 <span className="text-[10px] text-muted-foreground">{item.day}</span>

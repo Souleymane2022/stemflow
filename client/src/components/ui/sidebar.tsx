@@ -621,12 +621,12 @@ function SidebarMenuSkeleton({
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-md"
+          className="size-4 rounded-md h-4 max-w-[var(--skeleton-width)] flex-1"
           data-sidebar="menu-skeleton-icon"
         />
       )}
       <Skeleton
-        className="h-4 max-w-[var(--skeleton-width)] flex-1"
+
         data-sidebar="menu-skeleton-text"
         style={
           {

@@ -254,8 +254,8 @@ export default function Community() {
                           <div className="flex items-center gap-2 mb-1">
                             <ActivityIcon className="h-3.5 w-3.5 text-accent flex-shrink-0" />
                             <p className="text-sm">
-                              <span className="font-semibold">{activity.username}</span>{" "}
-                              <span className="text-muted-foreground">{activity.description}</span>
+                              <span>{activity.username}</span>{" "}
+                              <span>{activity.description}</span>
                             </p>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">

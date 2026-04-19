@@ -296,7 +296,7 @@ export default function CreateContent() {
               placeholder="Décris ton contenu..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="resize-none"
+              className="resize-none resize-none min-h-[200px] hidden hidden"
               rows={2}
               data-testid="input-description"
             />
@@ -310,7 +310,7 @@ export default function CreateContent() {
               placeholder="Rédige ton article... (LaTeX supporté avec $formula$)"
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
-              className="resize-none min-h-[200px]"
+
               rows={8}
               data-testid="input-text-content"
             />
@@ -339,7 +339,7 @@ export default function CreateContent() {
                     <input
                       type="file"
                       accept="image/*"
-                      className="hidden"
+
                       onChange={handleImageUpload}
                     />
                   </label>
@@ -382,7 +382,7 @@ export default function CreateContent() {
                     <input
                       type="file"
                       accept="video/mp4,video/webm"
-                      className="hidden"
+
                       onChange={handleVideoUpload}
                     />
                   </label>
@@ -596,7 +596,7 @@ export default function CreateContent() {
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-                className="flex-1"
+                className="flex-1 cursor-pointer"
                 data-testid="input-tag"
               />
               <Button className="interactive-element hover-elevate" variant="outline" onClick={addTag} data-testid="button-add-tag">
@@ -609,7 +609,7 @@ export default function CreateContent() {
                   <Badge
                     key={tag}
                     variant="secondary"
-                    className="cursor-pointer"
+
                     onClick={() => removeTag(tag)}
                   >
                     {tag}

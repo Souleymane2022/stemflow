@@ -289,7 +289,7 @@ export default function Auth() {
                             placeholder="ton@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 interactive-element hover-elevate w-full gradient-stem text-white"
                             required
                             data-testid="input-forgot-email"
                           />
@@ -298,7 +298,7 @@ export default function Auth() {
 
                       <Button
                         type="submit"
-                        className="interactive-element hover-elevate w-full gradient-stem text-white"
+
                         disabled={isPending}
                         data-testid="button-forgot-submit"
                       >
@@ -367,7 +367,7 @@ export default function Auth() {
                             placeholder="Min. 6 caractères"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="pl-10 pr-10"
+                            className="pl-10 pr-10 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                             required
                             minLength={6}
                             data-testid="input-new-password"
@@ -375,10 +375,10 @@ export default function Auth() {
                           <button
                             type="button"
                             onClick={() => setShowNewPassword(!showNewPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+
                             data-testid="button-toggle-new-password"
                           >
-                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showNewPassword ? <EyeOff className="h-4 w-4 h-4 w-4" /> : <Eye />}
                           </button>
                         </div>
                       </div>
@@ -454,7 +454,7 @@ export default function Auth() {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 6);
                           setActivationCode(val);
                         }}
-                        className="pl-10 text-center text-lg font-mono tracking-[0.3em]"
+                        className="pl-10 text-center text-lg font-mono tracking-[0.3em] interactive-element hover-elevate w-full gradient-stem text-white"
                         required
                         maxLength={6}
                         data-testid="input-activation-code"
@@ -464,7 +464,7 @@ export default function Auth() {
 
                   <Button
                     type="submit"
-                    className="interactive-element hover-elevate w-full gradient-stem text-white"
+
                     disabled={isPending || activationCode.length !== 6}
                     data-testid="button-activate"
                   >
@@ -507,7 +507,7 @@ export default function Auth() {
                           placeholder="Ton pseudo"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="pl-10"
+                          className="pl-10 pl-10 text-xs text-accent"
                           required
                           minLength={2}
                           maxLength={50}
@@ -527,7 +527,7 @@ export default function Auth() {
                         placeholder="ton@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+
                         required
                         data-testid="input-email"
                       />
@@ -541,7 +541,7 @@ export default function Auth() {
                         <button
                           type="button"
                           onClick={() => setStep("forgot")}
-                          className="text-xs text-accent"
+
                           data-testid="button-forgot-password"
                         >
                           Mot de passe oublié ?
@@ -556,7 +556,7 @@ export default function Auth() {
                         placeholder={step === "register" ? "Min. 6 caractères" : "Ton mot de passe"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         required
                         minLength={step === "register" ? 6 : 1}
                         data-testid="input-password"
@@ -564,10 +564,10 @@ export default function Auth() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+
                         data-testid="button-toggle-password"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? <EyeOff className="h-4 w-4 h-4 w-4" /> : <Eye />}
                       </button>
                     </div>
                   </div>

@@ -238,12 +238,12 @@ export default function AIAssistant() {
                 handleSend();
               }
             }}
-            className="resize-none min-h-[44px] max-h-[120px]"
+            className="resize-none min-h-[44px] max-h-[120px] interactive-element hover-elevate gradient-stem text-white self-end"
             rows={1}
             data-testid="input-chat-message"
           />
           <Button
-            className="interactive-element hover-elevate gradient-stem text-white self-end"
+
             disabled={!input.trim() || assistantMutation.isPending}
             onClick={handleSend}
             data-testid="button-send-message"

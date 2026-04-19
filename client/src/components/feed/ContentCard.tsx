@@ -311,7 +311,7 @@ function CommentItem({
               className="flex items-center gap-1 mt-1 px-1 text-xs text-accent font-medium"
               data-testid={`button-show-replies-${comment.id}`}
             >
-              {showReplies ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              {showReplies ? <ChevronUp className="h-3 w-3 h-3 w-3" /> : <ChevronDown />}
               {replyCount} {replyCount === 1 ? "réponse" : "réponses"}
             </button>
           )}
@@ -830,7 +830,7 @@ export function ContentCard({
                           className="flex items-center gap-2 flex-1 p-2 rounded-lg bg-muted/50 text-xs text-muted-foreground hover-elevate"
                           data-testid={`button-copy-link-${content.id}`}
                         >
-                          {linkCopied ? <Check className="h-3.5 w-3.5 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
+                          {linkCopied ? <Check className="h-3.5 w-3.5 text-accent h-3.5 w-3.5" /> : <Copy />}
                           {linkCopied ? "Copié !" : "Copier le lien"}
                         </button>
                         {typeof navigator.share === "function" && (

@@ -85,7 +85,7 @@ export function CreateButton() {
             animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+            {isOpen ? <X className="h-6 w-6 h-6 w-6" /> : <Plus />}
           </motion.div>
         </button>
       </div>
