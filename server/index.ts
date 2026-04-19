@@ -124,29 +124,16 @@ import { seedDatabase } from "./seed";
 import { setupAuth } from "./replit_integrations/auth";
 import { storage } from "./storage";
 
-(async () => {
+// Variable pour s'assurer que les routes ne sont enregistrées qu'une seule fois
+let serverInitialized = false;
+
+export async function setupServer(app: express.Express) {
+  if (serverInitialized) return httpServer;
+
   try {
     console.log("Starting server initialization sequence...");
-    const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-    const { db } = await import("./db");
-    const path = await import("path");
-
-    console.log("Running database migrations...");
-    try {
-      await migrate(db, { migrationsFolder: path.join(process.cwd(), "migrations") });
-      console.log("Database migrations completed successfully.");
-    } catch (e) {
-      console.error("Warning: migration failed, relying on existing schema or db will fail.", e);
-    }
-
-    // Only seed if not on Vercel or if DATABASE_SEED=true
-    if (!process.env.VERCEL || process.env.DATABASE_SEED === "true") {
-      await seedDatabase();
-      console.log("Database seeded successfully.");
-    } else {
-      console.log("Skipping database seed on Vercel Production.");
-    }
-
+    
+    // Auth setup
     await setupAuth(app, async (claims: any, req: any) => {
       const oauthId = claims.sub;
       const email = claims.email || null;
@@ -162,39 +149,50 @@ import { storage } from "./storage";
     app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-
       console.error("Internal Server Error:", err);
-
-      if (res.headersSent) {
-        return next(err);
-      }
-
+      if (res.headersSent) return next(err);
       return res.status(status).json({ message });
     });
 
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
       serveStatic(app);
     } else {
       const { setupVite } = await import("./vite");
       await setupVite(httpServer, app);
     }
 
-    if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-      try {
-        const port = parseInt(process.env.PORT || "5000", 10);
-        httpServer.listen(port, "0.0.0.0", () => {
-          console.log(`🚀 Server successfully started and serving on port ${port}`);
-        });
-      } catch (startupError) {
-        console.error("❌ ERROR BINDING PORT:", startupError);
-        process.exit(1);
-      }
-    }
-  } catch (globalError) {
-    console.error("❌ CRITICAL GLOBAL INITIALIZATION ERROR:", globalError);
-    // On Vercel, we don't want to exit the process as it might be a temporary issue
-    if (!process.env.VERCEL) {
-      process.exit(1);
-    }
+    serverInitialized = true;
+    return httpServer;
+  } catch (error) {
+    console.error("❌ Setup error:", error);
+    throw error;
   }
-})();
+}
+
+// Lancement local
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  (async () => {
+    try {
+      const { db } = await import("./db");
+      const { migrate } = await import("drizzle-orm/postgres-js/migrator");
+      const path = await import("path");
+      
+      console.log("Running local database migrations...");
+      try {
+        await migrate(db, { migrationsFolder: path.join(process.cwd(), "migrations") });
+      } catch (e) {
+        console.error("Migration skipped or failed:", e);
+      }
+      
+      await seedDatabase();
+      await setupServer(app);
+      
+      const port = parseInt(process.env.PORT || "5000", 10);
+      httpServer.listen(port, "0.0.0.0", () => {
+        console.log(`🚀 Server successfully started on port ${port}`);
+      });
+    } catch (err) {
+      console.error("Local startup error:", err);
+    }
+  })();
+}

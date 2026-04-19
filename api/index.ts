@@ -1,10 +1,10 @@
-import { app } from "../server/index";
+import { app, setupServer } from "../server/index";
 
 // Endpoint de diagnostic pour Vercel
 app.get("/api/debug", async (_req, res) => {
   try {
+    await setupServer(app);
     const { db } = await import("../server/db");
-    const { users } = await import("../shared/schema");
     const { sql } = await import("drizzle-orm");
     const path = await import("path");
     const fs = await import("fs");
@@ -30,6 +30,16 @@ app.get("/api/debug", async (_req, res) => {
       message: error.message,
       stack: error.stack
     });
+  }
+});
+
+// Middleware pour initialiser le serveur sur chaque requête si nécessaire
+app.use(async (req, res, next) => {
+  try {
+    await setupServer(app);
+    next();
+  } catch (error) {
+    next(error);
   }
 });
 
