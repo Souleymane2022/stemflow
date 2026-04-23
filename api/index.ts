@@ -1,61 +1,69 @@
 import { app as mainApp, setupServer } from "../server/index";
 
 let initialized = false;
-let initError: Error | null = null;
+let initError: any = null;
 
 async function ensureInitialized() {
   if (initialized) return;
   if (initError) throw initError;
 
   try {
-    // Run migrations before starting the server
-    const { db } = await import("../server/db");
-    const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-    const path = await import("path");
-
-    console.log("Running database migrations...");
-    try {
-      await migrate(db, { migrationsFolder: path.join(process.cwd(), "migrations") });
-      console.log("Migrations complete.");
-    } catch (migrationErr: any) {
-      // Ignore "already exists" errors — tables already created
-      if (!migrationErr.message?.includes("already exists")) {
-        console.error("Migration error:", migrationErr.message);
-      } else {
-        console.log("Tables already exist, skipping migration.");
-      }
-    }
-
+    console.log("Initializing server components...");
     await setupServer(mainApp);
     initialized = true;
+    console.log("Server components initialized successfully.");
   } catch (err: any) {
     initError = err;
-    console.error("Initialization failed:", err.message);
+    console.error("Initialization failed:", err);
     throw err;
   }
 }
+
+// Basic health check
+mainApp.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    initialized, 
+    env: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL
+  });
+});
 
 // Diagnostic endpoint
 mainApp.get("/api/debug", async (req, res) => {
   try {
     await ensureInitialized();
-    res.json({ status: "ok", message: "Server initialized and connected to Neon Postgres" });
+    res.json({ 
+      status: "ok", 
+      message: "Server initialized and connected",
+      database: !!process.env.DATABASE_URL
+    });
   } catch (error: any) {
-    res.status(500).json({ status: "error", message: error.message });
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
-// Lazy initialization middleware for all requests
+// Main middleware
 mainApp.use(async (req, res, next) => {
-  try {
-    await ensureInitialized();
+  // Skip initialization for static files if possible, 
+  // but Express handles them after this middleware in this setup.
+  if (req.path.startsWith("/api")) {
+    try {
+      await ensureInitialized();
+      next();
+    } catch (error: any) {
+      console.error("API Init Error:", error.message);
+      res.status(500).json({ 
+        error: "Server initialization failed", 
+        details: error.message 
+      });
+    }
+  } else {
     next();
-  } catch (error: any) {
-    console.error("Initialization error:", error.message);
-    res.status(500).json({
-      error: "Server initialization failed",
-      details: error.message,
-    });
   }
 });
 
