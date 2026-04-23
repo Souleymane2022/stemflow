@@ -4,7 +4,7 @@ import {
   commentsTable, badges, userBadges, activities, roomPosts, follows,
   notifications, videoEngagements, engagementStats, contentLikes,
   commentLikes, roomPostLikes, roomMembers, passwordResetTokens
-} from "@shared/schema";
+} from "../shared/schema";
 import { sql } from "drizzle-orm";
 
 const africanFirstNames = [

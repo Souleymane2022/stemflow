@@ -11,7 +11,7 @@ import {
   type Comment, type InsertComment, type Badge, type UserBadge, type LeaderboardEntry,
   type Follow, type Activity, type RoomPost, type Notification,
   type PasswordResetToken,
-} from "@shared/schema";
+} from "../shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, desc, asc, sql, like, inArray, isNull, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
