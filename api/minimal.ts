@@ -1,0 +1,7 @@
+export default function handler(req, res) {
+  res.status(200).json({ 
+    status: "ok", 
+    message: "Minimal health check",
+    time: new Date().toISOString()
+  });
+}

@@ -4,6 +4,10 @@ import session from "express-session";
 import memorystore from "memorystore";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import rateLimit from "express-rate-limit";
+import { seedDatabase } from "./seed";
+import { setupAuth } from "./replit_integrations/auth";
+import { storage } from "./storage";
 
 declare module "express-session" {
   interface SessionData {
@@ -37,7 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
-import rateLimit from "express-rate-limit";
+
 
 app.set("trust proxy", 1);
 
@@ -91,9 +95,7 @@ app.use((req, res, next) => {
   next();
 });
 
-import { seedDatabase } from "./seed";
-import { setupAuth } from "./replit_integrations/auth";
-import { storage } from "./storage";
+
 
 // Variable pour s'assurer que les routes ne sont enregistrées qu'une seule fois
 let serverInitialized = false;
