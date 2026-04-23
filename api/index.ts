@@ -1,37 +1,23 @@
-import express from "express";
+import { app, setupServer } from "../server/index";
 
-let app;
-let loadError = null;
+let initialized = false;
 
-try {
-  // On essaie de charger l'app principale
-  // On utilise un import dynamique pour attraper l'erreur si un module manque ou si les alias plantent
-  const { app: mainApp, setupServer } = await import("../server/index");
-  app = mainApp;
-  
-  // On tente l'initialisation
-  await setupServer(app);
-} catch (err) {
-  console.error("CRITICAL LOAD ERROR:", err);
-  loadError = err;
-}
-
-const api = express();
-
-api.use((req, res, next) => {
-  if (loadError) {
-    return res.status(500).json({ 
-      error: "Failed to load server modules", 
-      message: loadError.message,
-      stack: loadError.stack,
-      hint: "Check if all dependencies are installed and aliases are working"
+export default async function handler(req, res) {
+  try {
+    if (!initialized) {
+      console.log("Lazy loading server components...");
+      await setupServer(app);
+      initialized = true;
+    }
+    
+    // Express app est elle-même un handler (req, res)
+    return app(req, res);
+  } catch (error) {
+    console.error("Vercel Runtime Error:", error);
+    res.status(500).json({ 
+      error: "Runtime Error", 
+      message: error.message,
+      stack: error.stack 
     });
   }
-  if (!app) {
-    return res.status(500).json({ error: "Express app not initialized" });
-  }
-  // On délégue à l'app principale
-  app(req, res, next);
-});
-
-export default api;
+}
