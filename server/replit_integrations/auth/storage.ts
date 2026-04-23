@@ -1,4 +1,4 @@
-import { oauthUsers, type OAuthUser, type UpsertOAuthUser } from "../shared/models/auth";
+import { oauthUsers, type OAuthUser, type UpsertOAuthUser } from "@shared/models/auth";
 import { db } from "../../db";
 import { eq } from "drizzle-orm";
 

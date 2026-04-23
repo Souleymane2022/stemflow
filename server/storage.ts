@@ -7,7 +7,7 @@ import type {
   Comment, InsertComment, Badge, UserBadge, LeaderboardEntry,
   Follow, Activity, RoomPost, Notification,
   PasswordResetToken
-} from "../shared/schema";
+} from "@shared/schema";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;

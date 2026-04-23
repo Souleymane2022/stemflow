@@ -4,12 +4,8 @@
   "outputDirectory": "dist/public",
   "rewrites": [
     {
-      "source": "/api/migrate",
-      "destination": "/api/migrate"
-    },
-    {
       "source": "/api/(.*)",
-      "destination": "/api/server"
+      "destination": "/api/index"
     },
     {
       "source": "/((?!api/).*)",
