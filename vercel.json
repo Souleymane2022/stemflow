@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/migrate",
-      "destination": "/api/migrate.ts"
+      "destination": "/api/migrate"
     },
     {
       "source": "/api/(.*)",
