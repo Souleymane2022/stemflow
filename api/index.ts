@@ -1,7 +1,15 @@
-import { app, setupServer } from "../server/index";
 import { db } from "../server/db";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "path";
+
+// Important: Dynamic import of the app to avoid top-level issues
+const getApp = async () => {
+    const { app, setupServer } = await import("../server/index");
+    await setupServer(app);
+    return app;
+};
+
+let initializedApp: any = null;
 
 let initialized = false;
 
@@ -31,12 +39,11 @@ export default async function handler(req, res) {
 
   // 2. Initialisation paresseuse du serveur
   try {
-    if (!initialized) {
-      await setupServer(app);
-      initialized = true;
+    if (!initializedApp) {
+      initializedApp = await getApp();
     }
     // 3. Délégation à Express
-    return app(req, res);
+    return initializedApp(req, res);
   } catch (error) {
     console.error("Initialization Error:", error);
     res.status(500).json({ error: "Server Initialization Failed", details: error.message });
