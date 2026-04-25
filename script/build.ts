@@ -60,14 +60,14 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
     alias: {
-      "@shared": path.resolve(process.cwd(), "shared"),
+      "@shared": path.resolve(process.cwd(), "server/shared"),
     }
   });
 
   // 2. Vercel Bundle - OVERWRITING api/index.js
   console.log("Generating Vercel Fat Bundle...");
   await esbuild({
-    entryPoints: ["api/_index.ts"],
+    entryPoints: ["api/index.ts"],
     platform: "node",
     bundle: true,
     format: "esm", // Vercel likes ESM for modern Node
@@ -84,7 +84,7 @@ async function buildAll() {
 const require = createRequire(import.meta.url);`,
     },
     alias: {
-      "@shared": path.resolve(process.cwd(), "shared"),
+      "@shared": path.resolve(process.cwd(), "server/shared"),
     }
   });
 }
