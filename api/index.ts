@@ -1,29 +1,28 @@
+import { app, setupServer } from "../server/index";
+import { db } from "../server/db";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import path from "path";
+
+let initialized = false;
+
 export default async function handler(req, res) {
   const url = req.url || "";
 
-  // 1. Diagnostic de base (AUCUNE dépendance)
   if (url.includes("/health")) {
-    return res.status(200).json({ 
-      status: "alive", 
-      message: "Le serveur tourne enfin !",
-      nodeVersion: process.version,
-      vercelEnv: process.env.VERCEL
-    });
+    return res.status(200).json({ status: "alive", message: "Serveur configuré avec inclusion totale !" });
   }
 
-  // 2. Migration et Serveur (Importations dynamiques pour isoler les erreurs)
   try {
     if (url.includes("/migrate")) {
-       const { db } = await import("../server/db");
-       const { migrate } = await import("drizzle-orm/postgres-js/migrator");
-       const path = await import("path");
        const migrationsFolder = path.resolve(process.cwd(), "migrations");
        await migrate(db, { migrationsFolder });
-       return res.status(200).json({ success: true, message: "Migration réussie !" });
+       return res.status(200).json({ success: true, message: "Base de données synchronisée !" });
     }
 
-    const { app, setupServer } = await import("../server/index");
-    await setupServer(app);
+    if (!initialized) {
+      await setupServer(app);
+      initialized = true;
+    }
     return app(req, res);
   } catch (err) {
     console.error("Critical Runtime Error:", err);
