@@ -14,7 +14,13 @@ export default async function handler(req, res) {
       await migrate(db, { migrationsFolder });
       return res.status(200).json({ success: true, message: "Base de données Neon initialisée !" });
     } catch (err) {
-      return res.status(500).json({ success: false, error: err.message });
+      console.error("Migration Fatal Error:", err);
+      return res.status(500).json({ 
+        success: false, 
+        error: err.message,
+        stack: err.stack,
+        pathTried: path.resolve(process.cwd(), "migrations")
+      });
     }
   }
 

@@ -11,5 +11,11 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "migrations/**",
+      "maxDuration": 60
+    }
+  }
 }
