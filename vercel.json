@@ -14,7 +14,7 @@
   ],
   "functions": {
     "api/index.ts": {
-      "includeFiles": "{server,shared,migrations}/**",
+      "includeFiles": "server/**",
       "maxDuration": 60
     }
   }

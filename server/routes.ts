@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { registerSchema, loginSchema, activationSchema, forgotPasswordSchema, resetPasswordSchema } from "@shared/schema";
+import { registerSchema, loginSchema, activationSchema, forgotPasswordSchema, resetPasswordSchema } from "./shared/schema";
 import { randomBytes, createHash } from "crypto";
 import { sendPasswordResetEmail } from "./email";
 import {
