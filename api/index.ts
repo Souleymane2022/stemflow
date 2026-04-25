@@ -6,6 +6,11 @@ import path from "path";
 let initialized = false;
 
 export default async function handler(req, res) {
+  // 0. Route de test rapide
+  if (req.url.includes("/health")) {
+    return res.status(200).json({ status: "alive", message: "Le serveur répond !" });
+  }
+
   // 1. Route de migration PRIORITAIRE
   if (req.url.includes("/migrate")) {
     try {
