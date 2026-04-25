@@ -3,7 +3,7 @@ import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 import path from "path";
 
-// server deps to bundle to reduce openat(2) syscalls
+// server deps to bundle
 const allowlist = [
   "@google/generative-ai",
   "axios",
@@ -38,7 +38,7 @@ async function buildAll() {
   console.log("building client...");
   await viteBuild();
 
-  console.log("building server...");
+  console.log("building server bundles...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
@@ -64,13 +64,13 @@ async function buildAll() {
     }
   });
 
-  console.log("building vercel api bundle...");
-  // 2. Fat bundle for Vercel
+  // 2. Vercel Bundle - OVERWRITING api/index.js
+  console.log("Generating Vercel Fat Bundle...");
   await esbuild({
     entryPoints: ["api/index.ts"],
     platform: "node",
     bundle: true,
-    format: "cjs",
+    format: "esm", // Vercel likes ESM for modern Node
     outfile: "api/index.js",
     define: {
       "process.env.NODE_ENV": '"production"',
@@ -79,6 +79,10 @@ async function buildAll() {
     minify: false,
     external: ["fsevents", "canvas"],
     logLevel: "info",
+    banner: {
+      js: `import { createRequire } from "module";
+const require = createRequire(import.meta.url);`,
+    },
     alias: {
       "@shared": path.resolve(process.cwd(), "shared"),
     }
