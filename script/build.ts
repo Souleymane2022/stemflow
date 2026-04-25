@@ -67,7 +67,7 @@ async function buildAll() {
   // 2. Vercel Bundle - OVERWRITING api/index.js
   console.log("Generating Vercel Fat Bundle...");
   await esbuild({
-    entryPoints: ["api/index.ts"],
+    entryPoints: ["api/_index.ts"],
     platform: "node",
     bundle: true,
     format: "esm", // Vercel likes ESM for modern Node
