@@ -1,9 +1,9 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import path from "path";
 
 // server deps to bundle to reduce openat(2) syscalls
-// which helps cold start times
 const allowlist = [
   "@google/generative-ai",
   "axios",
@@ -24,7 +24,7 @@ const allowlist = [
   "passport",
   "passport-local",
   "pg",
-  "stripe",
+  "postgres",
   "uuid",
   "ws",
   "xlsx",
@@ -46,6 +46,7 @@ async function buildAll() {
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
+  // 1. Standard build for Node/Docker
   await esbuild({
     entryPoints: ["server/index.ts"],
     platform: "node",
@@ -58,6 +59,29 @@ async function buildAll() {
     minify: true,
     external: externals,
     logLevel: "info",
+    alias: {
+      "@shared": path.resolve(process.cwd(), "shared"),
+    }
+  });
+
+  console.log("building vercel api bundle...");
+  // 2. Fat bundle for Vercel
+  await esbuild({
+    entryPoints: ["api/index.ts"],
+    platform: "node",
+    bundle: true,
+    format: "cjs",
+    outfile: "api/index.js",
+    define: {
+      "process.env.NODE_ENV": '"production"',
+      "process.env.VERCEL": '"1"',
+    },
+    minify: false,
+    external: ["fsevents", "canvas"],
+    logLevel: "info",
+    alias: {
+      "@shared": path.resolve(process.cwd(), "shared"),
+    }
   });
 }
 
