@@ -1,44 +1,36 @@
-import { app, setupServer } from "../server/index";
-import { db } from "../server/db";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import path from "path";
-
-let initialized = false;
-
 export default async function handler(req, res) {
-  // 0. Route de test rapide
-  if (req.url.includes("/health")) {
-    return res.status(200).json({ status: "alive", message: "Le serveur répond !" });
+  const url = req.url || "";
+
+  // 1. Diagnostic de base (AUCUNE dépendance)
+  if (url.includes("/health")) {
+    return res.status(200).json({ 
+      status: "alive", 
+      message: "Le serveur tourne enfin !",
+      nodeVersion: process.version,
+      vercelEnv: process.env.VERCEL
+    });
   }
 
-  // 1. Route de migration PRIORITAIRE
-  if (req.url.includes("/migrate")) {
-    try {
-      console.log("Migration requested...");
-      const migrationsFolder = path.resolve(process.cwd(), "migrations");
-      await migrate(db, { migrationsFolder });
-      return res.status(200).json({ success: true, message: "Base de données Neon initialisée !" });
-    } catch (err) {
-      console.error("Migration Fatal Error:", err);
-      return res.status(500).json({ 
-        success: false, 
-        error: err.message,
-        stack: err.stack,
-        pathTried: path.resolve(process.cwd(), "migrations")
-      });
-    }
-  }
-
-  // 2. Initialisation paresseuse du serveur
+  // 2. Migration et Serveur (Importations dynamiques pour isoler les erreurs)
   try {
-    if (!initialized) {
-      await setupServer(app);
-      initialized = true;
+    if (url.includes("/migrate")) {
+       const { db } = await import("../server/db");
+       const { migrate } = await import("drizzle-orm/postgres-js/migrator");
+       const path = await import("path");
+       const migrationsFolder = path.resolve(process.cwd(), "migrations");
+       await migrate(db, { migrationsFolder });
+       return res.status(200).json({ success: true, message: "Migration réussie !" });
     }
-    // 3. Délégation à Express
+
+    const { app, setupServer } = await import("../server/index");
+    await setupServer(app);
     return app(req, res);
-  } catch (error) {
-    console.error("Initialization Error:", error);
-    res.status(500).json({ error: "Server Initialization Failed", details: error.message });
+  } catch (err) {
+    console.error("Critical Runtime Error:", err);
+    return res.status(500).json({ 
+      error: "Crash au démarrage", 
+      details: err.message,
+      stack: err.stack 
+    });
   }
 }
